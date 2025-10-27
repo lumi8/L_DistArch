@@ -1,6 +1,6 @@
-# LIB_CLSERV – Client-Server Library for PcVue 16
+# L_MultiStation – Client-Server Library for PcVue 16
 
-**LIB_CLSERV** is a library designed to extend **PcVue 16** functionality in **redundant Client-Server architectures**.  
+**L_MultiStation** is a library designed to extend **PcVue 16** functionality in **redundant Client-Server architectures**.  
 It provides a complete set of tools for **centralized management of multiple stations**, **automatic synchronization** of users and configurations, and **real-time monitoring** of the SCADA network status.
 
 ![Dashboard Client-Server](./DOCS/Image/Screen_Mimic.png)
@@ -27,7 +27,7 @@ It provides a complete set of tools for **centralized management of multiple sta
 
 ## 🧩 Internal Architecture
 
-LIB_CLSERV is built around a main SCADA Basic program (`LIB_CLSERV\P\GENERAL`) that manages:
+L_MultiStation is built around a main SCADA Basic program (`L_MultiStation\P\GENERAL`) that manages:
 - **Cyclic routines** for synchronization and alarm control (`ControlloUpgrade`, `Suona`, `Main2`),
 - **Updates** for user, version, and connection status,
 - **Auxiliary functions** for controlled restart, logging, and screenshot capture (via tools in `/TP/`).
@@ -48,7 +48,7 @@ External utilities included:
 
 ## 🚀 Quick Installation Guide
 
-1. Copy the **LIB_CLSERV** folder into the project’s `LIB` directory.  
+1. Copy the **L_MultiStation** folder into the project’s `LIB` directory.  
 2. Copy the **TP** folder into the project root.  
 3. Edit `user_copy.bat` and `user_load.bat` to match your Central Folder network paths.  
 4. In **Application Architect**, create instances from the provided templates and adapt the mimic or global parameters as needed.  
@@ -56,12 +56,12 @@ External utilities included:
 
 ```vba
 Sub Main()
-    PROGRAM("PRELOAD", "LIB_CLSERV/GENERAL", "")
-    PROGRAM("EXECUTE", "LIB_CLSERV/GENERAL", "")
+    PROGRAM("PRELOAD", "L_MultiStation/GENERAL", "")
+    PROGRAM("EXECUTE", "L_MultiStation/GENERAL", "")
 End Sub 
 ```
 6. Generate and deploy the project across all stations.
 
 ## 📘 Full Technical Documentation
 For full installation instructions, detailed configuration steps, and complete SCADA Basic code, refer to the comprehensive manual:
-➡️ [**LIB_CLSERV Technical Guide (PDF)**](DOCS)
+➡️ [**L_MultiStation Technical Guide (PDF)**](DOCS)
