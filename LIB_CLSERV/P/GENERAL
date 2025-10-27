@@ -506,7 +506,7 @@ Sub UserUpdate()
 	UserID=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".USER");
 	?UserID = @User;
 	
-	'Gestione Versione PcVue Corrente
+	'Current PcVue Version Management
 	SV_Vers=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".SV_VERS");
 	?SV_Vers = @System.LocalHost.Environment.ProductVersion;
 	
@@ -784,8 +784,8 @@ Sub LogUser()
 		varRunningMode = ADDSTRING(currBrch, ".RUNNINGMODE");
 		varStation     = VARIABLE("TATT",varOnline,3);
 
-		strVarUser = (?varUser); 								'Metto su varUSer il mome utente corrente
-		RunningMode = (?varRunningMode); 						'Appoggio valore di RunningMode su Var interna
+		strVarUser = (?varUser); 								'put on varUSer the current user name
+		RunningMode = (?varRunningMode); 						'put RunningMode value on internal Var
 
         '---------------------------------------
         ' User LOGIN case
@@ -908,3 +908,4 @@ Sub DualHardCopy()
 	END IF
 	
 End Sub
+
