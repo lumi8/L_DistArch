@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
 <TemplatesRoot Name="" SchemaVersion="16.0.0">
-<Library Name="LIB_CLSERV">
+<Library Name="L_MultiStation">
 <CategoriesList/>
 <TemplatesList>
 <Template Name="LAN">
@@ -11,17 +11,17 @@
 <AutoNaming_Step>1</AutoNaming_Step>
 <Enable_Instance>true</Enable_Instance>
 <ParametersList>
-<ParameterInstance Name="LIB_CLSERV/pAllClient">
+<ParameterInstance Name="L_MultiStation/pAllClient">
 <DescriptionLang1>pAllClient</DescriptionLang1>
 <DescriptionLang2>pAllClient</DescriptionLang2>
 <Value/>
 </ParameterInstance>
-<ParameterInstance Name="LIB_CLSERV/pAllServerList">
+<ParameterInstance Name="L_MultiStation/pAllServerList">
 <DescriptionLang1>pAllServerList</DescriptionLang1>
 <DescriptionLang2>pAllServerList</DescriptionLang2>
 <Value/>
 </ParameterInstance>
-<ParameterInstance Name="LIB_CLSERV/pHServerList">
+<ParameterInstance Name="L_MultiStation/pHServerList">
 <DescriptionLang1>pHServerList</DescriptionLang1>
 <DescriptionLang2>pHServerList</DescriptionLang2>
 <Value/>
@@ -38,7 +38,7 @@
 <Property id="Description" Reset="false" Substitute="false">1 when local station is active in managing audit events</Property>
 <Property id="Eqt_Type" Reset="false" Substitute="false">B</Property>
 <Property id="InitialValue" Reset="false" Substitute="false">0</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">LIB_CLSERV/pAllServerList</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">L_MultiStation/pAllServerList</Property>
 <Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
 </Properties>
 </ObjectItem>
@@ -80,7 +80,7 @@
 <SvType>5</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">LIB_CLSERV/Localhost</Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_MultiStation/Localhost</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
@@ -91,7 +91,7 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="ClientListName" Reset="false" Substitute="false">LCALL</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">LIB_CLSERV/pHServerList</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">L_MultiStation/pHServerList</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList>
@@ -293,7 +293,7 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="Description" Reset="false" Substitute="false"></Property>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">LIB_CLSERV/Station</Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_MultiStation/Station</Property>
 <Property id="Visibility" Reset="true" Substitute="false">0;6400</Property>
 </Properties>
 </ObjectItem>
@@ -334,7 +334,7 @@
 <Properties>
 <Property id="EnableExpression" Reset="false" Substitute="false">=0</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">ResetBuzzer</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">LIB_CLSERV/GENERAL</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_MultiStation/GENERAL</Property>
 <Property id="TriggeringCondition" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -347,7 +347,7 @@
 <Properties>
 <Property id="EnableExpression" Reset="false" Substitute="false">+1</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">SetBuzzer</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">LIB_CLSERV/GENERAL</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_MultiStation/GENERAL</Property>
 <Property id="TriggeringCondition" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -387,7 +387,7 @@
 <Property id="EnableVarName" Reset="false" Substitute="true">=TemplateInstance.Parent.Branch + ".ACTIVE"</Property>
 <Property id="ProgramBranch" Reset="false" Substitute="true">=TemplateInstance.FullBranch</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">LogUser</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">LIB_CLSERV/GENERAL</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_MultiStation/GENERAL</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>

@@ -395,6 +395,6 @@ O,BEGIN,T,"Text23"
 	AST,4,2,COLOR,1,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,1
 	PP,1,1790,814,0,0,FONT,5,"More details...",37,FONT,4,"Livello Min",37
 	A,BEGIN,LO,"Anim2",0,0,"","",0,0,0,0
-		PP,"LIB_CLSERV/DIAGNOSTICS_HDS","",1,0,1,0,"","",1,0,,1,0,
+		PP,"L_MultiStation/DIAGNOSTICS_HDS","",1,0,1,0,"","",1,0,,1,0,
 	A,END
 O,END

@@ -1,5 +1,5 @@
 '---------------------------------------
-' LIB_CLSERV - Global Configuration
+' L_MultiStation - Global Configuration
 '---------------------------------------
 ' Purpose:
 '   Centralized constants for redundancy associations and
@@ -29,13 +29,13 @@ Declare Function CloseHandle Lib "kernel32" (hObject As Long) As Long;
 Sub Main()
 	
     ' Schedule periodic check for upgrades and user reload
-    CYCLIC("ADDPROG", 15, "LIB_CLSERV/GENERAL", "", "ControlloUpgrade");
+    CYCLIC("ADDPROG", 15, "L_MultiStation/GENERAL", "", "ControlloUpgrade");
 
     ' Schedule cyclic buzzer management
-    CYCLIC("ADDPROG", 15, "LIB_CLSERV/GENERAL", "", "Buzzer");
+    CYCLIC("ADDPROG", 15, "L_MultiStation/GENERAL", "", "Buzzer");
 
     ' Delay loading of Main2() to allow system initialization
-    CYCLIC("ADDPROG", 10, "LIB_CLSERV/GENERAL", "", "Main2");
+    CYCLIC("ADDPROG", 10, "L_MultiStation/GENERAL", "", "Main2");
 
 End Sub
 
@@ -66,16 +66,16 @@ Sub Main2()
         
     ' Event: detect user disconnection (USER_DISC rising edge)
     DisconnID = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".USER_DISC");
-    EVENT("ADDPROG", DisconnID, "0>1", "LIB_CLSERV/GENERAL", "", "UserDisconnection");
+    EVENT("ADDPROG", DisconnID, "0>1", "L_MultiStation/GENERAL", "", "UserDisconnection");
     
     ' Event: detect user change
-    EVENT("ADDPROG", "@USER", "ALL>S", "LIB_CLSERV/GENERAL", "", "UserUpdate");
+    EVENT("ADDPROG", "@USER", "ALL>S", "L_MultiStation/GENERAL", "", "UserUpdate");
     
     ' Event: detect version change
-    EVENT("ADDPROG", "@System.LocalHost.Version.Project", "ALL>S", "LIB_CLSERV/GENERAL", "", "VersionUpdate");
+    EVENT("ADDPROG", "@System.LocalHost.Version.Project", "ALL>S", "L_MultiStation/GENERAL", "", "VersionUpdate");
     
     ' Remove delayed cyclic created in Main()
-    CYCLIC("DEL_EX", 10, "LIB_CLSERV/GENERAL", "", "Main2");
+    CYCLIC("DEL_EX", 10, "L_MultiStation/GENERAL", "", "Main2");
     
     ' Log module initialization
     TRACE("LOG", "***** SYS_CLSERV : Client-Server Management module loaded ****");
@@ -181,7 +181,7 @@ Sub ControlloUpgrade()
     '-----------------------------------
     VarReset = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".RESET");
     IF (?VarReset == 1) THEN
-    	PROGRAM("FUNCTION", "LIB_CLSERV/GENERAL", "", "Restart_PcVue");
+    	PROGRAM("FUNCTION", "L_MultiStation/GENERAL", "", "Restart_PcVue");
     END IF
 
     '-----------------------------------
@@ -641,7 +641,7 @@ Sub DualDisplay()
     END IF
 
     ' Remove this cyclic task (only runs once after startup)
-    CYCLIC("DEL", 10, "LIB_CLSERV/GENERAL", "", "DualDisplay");
+    CYCLIC("DEL", 10, "L_MultiStation/GENERAL", "", "DualDisplay");
 
     ' Reset selection and restore focus to primary screen
     REGION("SETSELECTION", 0);
@@ -801,7 +801,7 @@ Sub LogUser()
             IF (RunningMode == 3) THEN VARIABLE("SETTATT", varLogin, 5, "RDS");     END IF
 
 			TRACE("LOG",(ADDSTRING("--- REMOTE TRACE LOGIN --- ",varLogin, " - ", strVarUser)));
-			CYCLIC("ADDPROG", 1,"LIB_CLSERV/GENERAL", currBrch, "ResetTrigger", "LOGIN" );
+			CYCLIC("ADDPROG", 1,"L_MultiStation/GENERAL", currBrch, "ResetTrigger", "LOGIN" );
 			?VarLogin = (1);
 
         '---------------------------------------
@@ -817,7 +817,7 @@ Sub LogUser()
             IF (RunningMode == 3) THEN VARIABLE("SETTATT", varLogout, 5, "RDS");     END IF
             		
 			TRACE("LOG",(ADDSTRING("--- REMOTE TRACE LOGOFF --- ",varLogout, " - ", strVarUser)));
-			CYCLIC("ADDPROG", 1,"LIB_CLSERV/GENERAL", currBrch, "ResetTrigger", "LOGOUT" );
+			CYCLIC("ADDPROG", 1,"L_MultiStation/GENERAL", currBrch, "ResetTrigger", "LOGOUT" );
 			?varLogout = (1);
 
 		END IF
@@ -849,7 +849,7 @@ Sub ResetTrigger()
 	strArg1 = GETARG("ARG1");
 	currBrch = GETARG("BRANCH");
 	
-	CYCLIC("DEL", 1, "LIB_CLSERV/GENERAL", currBrch, "ResetTrigger" );
+	CYCLIC("DEL", 1, "L_MultiStation/GENERAL", currBrch, "ResetTrigger" );
 	
 	'Varname costruisce la variabile bit che triggera la scrittura evento
 	varName=ADDSTRING(currBrch, ".",strArg1); 				
