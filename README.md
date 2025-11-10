@@ -17,7 +17,7 @@ It provides a complete set of tools for **centralized management of multiple sta
   Continuous update of `LAN.<Station>.*` variables showing status, users, versions, and running modes.
 
 - **Alarm and Buzzer Control**  
-  Centralized sound management and alarm override using `Suona()`, `SetSuona()`, and `ResetSuona()` routines.
+  Centralized sound management and alarm override using `Buzzer()`, `SetBuzzer()`, and `ResetBuzzer()` routines.
 
 - **Version and Restart Management**  
   Version comparison between project and library, and controlled PcVue runtime restart via `Restart_PcVue()`.
@@ -28,13 +28,13 @@ It provides a complete set of tools for **centralized management of multiple sta
 ## 🧩 Internal Architecture
 
 L_MultiStation is built around a main SCADA Basic program (`L_MultiStation\P\GENERAL`) that manages:
-- **Cyclic routines** for synchronization and alarm control (`ControlloUpgrade`, `Suona`, `Main2`),
+- **Cyclic routines** for synchronization and alarm control (`ControlloUpgrade`, `Buzzer`, `Main2`),
 - **Updates** for user, version, and connection status,
 - **Auxiliary functions** for controlled restart, logging, and screenshot capture (via tools in `/TP/`).
 
 External utilities included:
 - `svrestart.exe` – controlled restart of the PcVue runtime  
-- `playwav.exe` – centralized sound control  
+- `wav_player.exe` – centralized sound control  
 - `nircmd.exe` – automatic screen capture  
 - `user_copy.bat`, `user_load.bat` – user file synchronization  
 

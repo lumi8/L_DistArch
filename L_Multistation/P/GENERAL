@@ -32,7 +32,7 @@ Sub Main()
     CYCLIC("ADDPROG", 15, "LIB_CLSERV/GENERAL", "", "ControlloUpgrade");
 
     ' Schedule cyclic buzzer management
-    CYCLIC("ADDPROG", 15, "LIB_CLSERV/GENERAL", "", "Suona");
+    CYCLIC("ADDPROG", 15, "LIB_CLSERV/GENERAL", "", "Buzzer");
 
     ' Delay loading of Main2() to allow system initialization
     CYCLIC("ADDPROG", 10, "LIB_CLSERV/GENERAL", "", "Main2");
@@ -401,7 +401,7 @@ End Sub
 
 
 '---------------------------------------
-' Suona
+' Buzzer
 '---------------------------------------
 ' Purpose:
 '   Play buzzer sound if both enable and trigger flags are active.
@@ -411,23 +411,24 @@ End Sub
 '   LAN.<Station>.BUZZER     - Trigger flag for buzzer
 '
 ' Notes:
-'   - Uses playwav.exe located in project folder \TP\
+'   - Uses wav_player.exe located in library folder \TP\
+'   - Source code available on GitHub: https://github.com/lumi8/wav_player
 '   - Sound file: suonoalto.wav
 '---------------------------------------
 
-Sub Suona()
+Sub Buzzer()
 
 	Dim ProjectPath as Str;
-	Dim VarEnCicalino as Str;
-	Dim VarCicalino as Str;
+	Dim VarEnBuzzer as Str;
+	Dim VarBuzzer as Str;
 
-	VarEnCicalino=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
-	VarCicalino=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
+	VarEnBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
+	VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
 
-	IF (?VarEnCicalino == 1 && ?VarCicalino == 1) THEN
+	IF (?VarEnBuzzer == 1 && ?VarBuzzer == 1) THEN
 
 		ProjectPath=GETPROJECTDIR();
-		ProjectPath=ADDSTRING(ProjectPath,"\\TP\\playwav.exe");
+		ProjectPath=ADDSTRING(ProjectPath,"\\LIB\\L_MultiStation\\TP\\wav_player.exe");
 		APPLICATION("LOAD",ProjectPath,"suonoalto.wav",5);
 
 	END IF
@@ -436,7 +437,7 @@ End Sub
 
 
 '---------------------------------------
-' SetSuona
+' SetBuzzer
 '---------------------------------------
 ' Purpose:
 '   Set buzzer trigger flag (BUZZER = 1) if buzzer is enabled.
@@ -446,18 +447,18 @@ End Sub
 '   LAN.<Station>.BUZZER     - Trigger flag for buzzer
 '---------------------------------------
 
-Sub SetSuona()
+Sub SetBuzzer()
 
 	Dim ProjectPath as Str;
-	Dim VarEnCicalino as Str;
-	Dim VarCicalino as Str;
+	Dim VarEnBuzzer as Str;
+	Dim VarBuzzer as Str;
 
-	VarEnCicalino=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
-	VarCicalino=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
+	VarEnBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
+	VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
 
-	IF (?VarEnCicalino == 1 ) THEN
+	IF (?VarEnBuzzer == 1 ) THEN
 
-		?VarCicalino = (1);
+		?VarBuzzer = (1);
 
 	END IF
 
@@ -465,7 +466,7 @@ End Sub
 
 
 '---------------------------------------
-' ResetSuona
+' ResetBuzzer
 '---------------------------------------
 ' Purpose:
 '   Reset buzzer trigger flag (BUZZER = 0).
@@ -474,14 +475,14 @@ End Sub
 '   LAN.<Station>.BUZZER     - Trigger flag for buzzer
 '---------------------------------------
 
-Sub ResetSuona()
+Sub ResetBuzzer()
 
 	Dim ProjectPath as Str;
-	Dim VarEnCicalino as Str;
-	Dim VarCicalino as Str;
+	Dim VarEnBuzzer as Str;
+	Dim VarBuzzer as Str;
 
-	VarCicalino=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
-	?VarCicalino = (0);
+	VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
+	?VarBuzzer = (0);
 
 End Sub
 

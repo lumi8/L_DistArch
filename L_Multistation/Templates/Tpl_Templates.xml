@@ -333,7 +333,7 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="EnableExpression" Reset="false" Substitute="false">=0</Property>
-<Property id="ProgramFunction" Reset="false" Substitute="false">ResetSuona</Property>
+<Property id="ProgramFunction" Reset="false" Substitute="false">ResetBuzzer</Property>
 <Property id="ProgramName" Reset="false" Substitute="false">LIB_CLSERV/GENERAL</Property>
 <Property id="TriggeringCondition" Reset="false" Substitute="false">2</Property>
 </Properties>
@@ -346,7 +346,7 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="EnableExpression" Reset="false" Substitute="false">+1</Property>
-<Property id="ProgramFunction" Reset="false" Substitute="false">SetSuona</Property>
+<Property id="ProgramFunction" Reset="false" Substitute="false">SetBuzzer</Property>
 <Property id="ProgramName" Reset="false" Substitute="false">LIB_CLSERV/GENERAL</Property>
 <Property id="TriggeringCondition" Reset="false" Substitute="false">2</Property>
 </Properties>
