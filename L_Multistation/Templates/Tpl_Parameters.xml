@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
 <ParametersRoot Name="" SchemaVersion="16.0.0">
-<Library Name="L_MultiStation">
+<Library Name="L_DistArch">
 <CategoriesList/>
 <ParametersList>
 <Parameter Name="pAllClient">

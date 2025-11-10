@@ -1,6 +1,6 @@
-# L_MultiStation – Client-Server Library for PcVue 16
+# L_DistArch – Client-Server Library for PcVue 16
 
-**L_MultiStation** is a library designed to extend **PcVue 16** functionality in **redundant Client-Server architectures**.  
+**L_DistArch** is a library designed to extend **PcVue 16** functionality in **redundant Client-Server architectures**.  
 It provides a complete set of tools for **centralized management of multiple stations**, **automatic synchronization** of users and configurations, and **real-time monitoring** of the SCADA network status.
 
 ![Dashboard Client-Server](./DOCS/Image/Screen_Mimic.png)
@@ -27,7 +27,7 @@ It provides a complete set of tools for **centralized management of multiple sta
 
 ## 🧩 Internal Architecture
 
-L_MultiStation is built around a main SCADA Basic program (`L_MultiStation\P\GENERAL`) that manages:
+L_DistArch is built around a main SCADA Basic program (`L_DistArch\P\GENERAL`) that manages:
 - **Cyclic routines** for synchronization and alarm control (`ControlloUpgrade`, `Buzzer`, `Main2`),
 - **Updates** for user, version, and connection status,
 - **Auxiliary functions** for controlled restart, logging, and screenshot capture (via tools in `/TP/`).
@@ -48,7 +48,7 @@ External utilities included:
 
 ## 🚀 Quick Installation Guide
 
-1. Copy the **L_MultiStation** folder into the project’s `LIB` directory.  
+1. Copy the **L_DistArch** folder into the project’s `LIB` directory.  
 2. Copy the **TP** folder into the project root.  
 3. Edit `user_copy.bat` and `user_load.bat` to match your Central Folder network paths.  
 4. In **Application Architect**, create instances from the provided templates and adapt the mimic or global parameters as needed.  
@@ -56,12 +56,12 @@ External utilities included:
 
 ```vba
 Sub Main()
-    PROGRAM("PRELOAD", "L_MultiStation/GENERAL", "")
-    PROGRAM("EXECUTE", "L_MultiStation/GENERAL", "")
+    PROGRAM("PRELOAD", "L_DistArch/GENERAL", "")
+    PROGRAM("EXECUTE", "L_DistArch/GENERAL", "")
 End Sub 
 ```
 6. Generate and deploy the project across all stations.
 
 ## 📘 Full Technical Documentation
 For full installation instructions, detailed configuration steps, and complete SCADA Basic code, refer to the comprehensive manual:
-➡️ [**L_MultiStation Technical Guide (PDF)**](DOCS)
+➡️ [**L_DistArch Technical Guide (PDF)**](DOCS)
