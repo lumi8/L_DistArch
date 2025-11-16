@@ -44,6 +44,28 @@
 <GblPropertyDefaultValue/>
 <GblFilters/>
 </Parameter>
+<Parameter Name="VarClientList">
+<nPType>1</nPType>
+<nDataType>0</nDataType>
+<nType>0</nType>
+<DefaultValue/>
+<GblOverwriteMode>0</GblOverwriteMode>
+<GblObjectType>1</GblObjectType>
+<GblPropertyName>ClientListName</GblPropertyName>
+<GblPropertyDefaultValue/>
+<GblFilters/>
+</Parameter>
+<Parameter Name="VarServerList">
+<nPType>1</nPType>
+<nDataType>0</nDataType>
+<nType>0</nType>
+<DefaultValue/>
+<GblOverwriteMode>0</GblOverwriteMode>
+<GblObjectType>1</GblObjectType>
+<GblPropertyName>ServerListName</GblPropertyName>
+<GblPropertyDefaultValue/>
+<GblFilters/>
+</Parameter>
 </ParametersList>
 </Library>
 </ParametersRoot>
