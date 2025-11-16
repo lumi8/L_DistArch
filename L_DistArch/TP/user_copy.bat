@@ -1,9 +1,9 @@
-:: ====================================================================
-:: user_copy.bat
-:: Copia il file user.dat dalla cartella progetto PcVue TEST_17 
-:: alla Central Folder dove è stata creata la cartella User. Correggere il Percorso
-:: ====================================================================
+@echo off
+ECHO Command to execute: robocopy "%~1" "%~2" user.dat /copy:DATS /R:3 /W:5 /LOG+:"%~1\TP\user_reload.log" /TEE
 
-::AS
+::Parameter %~1 is the current folder of PcVue project, 
+::Parameter %~2 is the Central Folder
+::Enable the following row in place of the working one to enable logging
+::robocopy "%~1\C" "%~2" user.dat /copy:DATS /R:3 /W:5 /LOG+:"%~1\TP\user_reload.log" /TEE
 
-robocopy "C:\ARC Informatique\PcVue 16\data\usr\TEST_17\C" "\\srv-pcvue.pcvue.cloud\Central\User" user.dat /copy:DATS /R:3 /W:5 /LOG+:"C:\ARC Informatique\PcVue 16\data\usr\TEST_17\TP\user_reload.log" /TEE
+robocopy "%~1\C" "%~2" user.dat /copy:DATS /R:3 /W:5

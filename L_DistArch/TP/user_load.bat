@@ -1,15 +1,10 @@
-:: ====================================================================
-:: user_load.bat
-:: Copia il file user.dat dalla cartella centralizzata (C:\Central\User)
-:: nelle cartelle del progetto PcVue TEST_17 (C e CTEMP).
-:: ====================================================================
+@echo off
+ECHO Command to execute: robocopy "%~1" "%~2" user.dat /copy:DATS /R:3 /W:5 /LOG+:"%~1\TP\user_reload.log" /TEE
 
-::AS
+::Parameter %~1 is the Central Folder
+::Parameter %~2 is the current folder of PcVue project
+::Enable the following row in place of the working one to enable logging
+::robocopy "%~1\C" "%~2" user.dat /copy:DATS /R:3 /W:5 /LOG+:"%~1\TP\user_reload.log" /TEE
 
-robocopy "\\srv-pcvue.pcvue.cloud\Central\User" "C:\ARC Informatique\PcVue 16\data\usr\TEST_17\C" user.dat /copy:DATS /R:3 /W:5 /LOG+:"C:\ARC Informatique\PcVue 16\data\usr\TEST_17\TP\user_reload.log" /TEE
-
-robocopy "\\srv-pcvue.pcvue.cloud\Central\User" "C:\ARC Informatique\PcVue 16\data\usr\TEST_17\CTEMP" user.dat /copy:DATS /R:3 /W:5 /LOG+:"C:\ARC Informatique\PcVue 16\data\usr\TEST_17\TP\user_reload.log" /TEE
-
-
-:: robocopy \\NAS-A\CENTRAL\USER C:\SCH_SCADA\PcVue32\Usr\ZOHR\C user.dat /copy:DATS 
-:: robocopy \\NAS-A\CENTRAL\USER C:\SCH_SCADA\PcVue32\Usr\ZOHR\CTEMP user.dat /copy:DATS
+robocopy "%~1" "%~2\C" user.dat /copy:DATS /R:3 /W:5
+robocopy "%~1" "%~2\CTEMP" user.dat /copy:DATS /R:3 /W:5
