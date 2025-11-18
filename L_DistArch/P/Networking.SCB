@@ -1,0 +1,38 @@
+Sub RefreshStationVariables()
+DIM Var as str;
+
+	Var = AddString("@System.", GetArg("ARG1"), ".Resource.FreeVirtualMemory");
+	FreeVirtualMemory = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Key.LicenseNumber");
+	LicenseNumber = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Mimic.OpenCount");
+	OpenMimicNumber = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Resource.GDI");
+	GDI = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Resource.Handles");
+	Handles = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Resource.RAM");
+	RAM = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Resource.Threads");
+	Threads = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Resource.User");
+	User = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".User1.FullAccountName");
+	UserConnected = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".User1.Profile");
+	ProfileConnected = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Version.Project");
+	ProjectVersion = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Version.Library");
+	LibraryVersion = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Version.PreReference.ProjectIsNotCurrentPreRef");
+	ProjectIsNotCurrentPreRef = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Version.Reference.ProjectIsNotCurrentRef");
+	ProjectIsNotCurrentRef = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Version.PreReference.LibraryIsNotCurrentPreRef");
+	LibraryIsNotCurrentPreRef = ?Var;
+	Var = AddString("@System.", GetArg("ARG1"), ".Version.Reference.LibraryIsNotCurrentRef");
+	LibraryIsNotCurrentRef = ?Var;
+
+
+End Sub

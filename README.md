@@ -27,7 +27,7 @@ It provides a complete set of tools for **centralized management of multiple sta
 
 ## 🧩 Internal Architecture
 
-L_DistArch is built around a main SCADA Basic program (`L_DistArch\P\GENERAL`) that manages:
+L_DistArch is built around a main SCADA Basic program (`L_DistArch\P\GENERAL.SCB`) that manages:
 - **Cyclic routines** for synchronization and alarm control (`ControlloUpgrade`, `Buzzer`, `Main2`),
 - **Updates** for user, version, and connection status,
 - **Auxiliary functions** for controlled restart, logging, and screenshot capture (via tools in `/TP/`).
@@ -56,8 +56,8 @@ External utilities included:
 
 ```vba
 Sub Main()
-    PROGRAM("PRELOAD", "L_DistArch/GENERAL", "")
-    PROGRAM("EXECUTE", "L_DistArch/GENERAL", "")
+    PROGRAM("PRELOAD", "L_DistArch/GENERAL.SCB", "")
+    PROGRAM("EXECUTE", "L_DistArch/GENERAL.SCB", "")
 End Sub 
 ```
 6. Generate and deploy the project across all stations.

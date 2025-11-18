@@ -115,7 +115,7 @@ O,BEGIN,R,"Shape21"
 	B,808,226,14,183,808,226,65535,0,6400,0,1,0,0,0,1,0
 	ST,0,1,COLOR,3,COLOR,3,0,0,COLOR,6,0,COLOR,6,0,COLOR,2,0,COLOR,2
 	A,BEGIN,RP,"Anim3",0,0,"",""
-		PP,"LIB_CLSERV/GENERAL","","BroadcastPassword","","",0,0
+		PP,"LIB_CLSERV/GENERAL.SCB","","BroadcastPassword","","",0,0
 	A,END
 O,END
 O,BEGIN,T,"Text16"

@@ -388,7 +388,7 @@
 <Properties>
 <Property id="EnableExpression" Reset="false" Substitute="false">=0</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">ResetBuzzer</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
 <Property id="TriggeringCondition" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -401,7 +401,7 @@
 <Properties>
 <Property id="EnableExpression" Reset="false" Substitute="false">+1</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">SetBuzzer</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
 <Property id="TriggeringCondition" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -441,7 +441,7 @@
 <Property id="EnableVarName" Reset="false" Substitute="true">=TemplateInstance.Parent.Branch + ".ACTIVE"</Property>
 <Property id="ProgramBranch" Reset="false" Substitute="true">=TemplateInstance.FullBranch</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">LogUser</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
@@ -533,7 +533,7 @@
 <Property id="ProgramArgs" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="ProgramBranch" Reset="false" Substitute="true">=Inst.FullBranch</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">RefreshStationVariables</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">L_MULTISTATION/MultiStation.SCB</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_MULTISTATION/Networking.SCB</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
