@@ -533,7 +533,7 @@
 <Property id="ProgramArgs" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="ProgramBranch" Reset="false" Substitute="true">=Inst.FullBranch</Property>
 <Property id="ProgramFunction" Reset="false" Substitute="false">RefreshStationVariables</Property>
-<Property id="ProgramName" Reset="false" Substitute="false">L_MULTISTATION/Networking.SCB</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/Networking.SCB</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
@@ -1534,7 +1534,7 @@
 <SvType>5</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_MULTISTATION/RedondantServer.sym</Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/RedondantServer.sym</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
