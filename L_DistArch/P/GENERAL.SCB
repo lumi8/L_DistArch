@@ -283,6 +283,9 @@ Sub Restart_PcVue()
         '---------------------------------------
         ' Service mode handling
         ' If PcVue is running as service, restart via Windows services
+        ' You must configure authorization for the user (ie .\pcvue) to restart the SV Core Session Host service.
+        ' Otherwise, the service will stop but may not restart automatically.
+        ' Full control over the service svCoreDeamon.exe is required.
         '---------------------------------------
         IF (@System.LocalHost.Environment.RunningAsService == 1) THEN
             ServiceRst = "net stop SvCoreDaemon && net start SvCoreDaemon";
