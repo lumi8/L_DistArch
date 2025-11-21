@@ -28,14 +28,15 @@ Declare Function CloseHandle Lib "kernel32" (hObject As Long) As Long;
 
 Sub Main()
 	
-    ' Schedule periodic check for upgrades and user reload
-    CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL", "", "ControlloUpgrade");
 
     ' Schedule cyclic buzzer management
-    CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL", "", "Buzzer");
+    CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL.SCB", "", "Buzzer");
 
     ' Delay loading of Main2() to allow system initialization
-    CYCLIC("ADDPROG", 10, "L_DistArch/GENERAL", "", "Main2");
+    CYCLIC("ADDPROG", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
+    
+    Program("PRELOAD", "L_DistArch/Networking.SCB", "");
+    
 
 End Sub
 
@@ -56,114 +57,39 @@ Sub Main2()
     Dim DisconnID  As Str;
     Dim UserID     As Str;
 
-    ' Initial updates
-    VersionUpdate();   ' Write project and library version
-    UserUpdate();      ' Write current user
-    ActiveUpdate();    ' Write active flag
     
     ' Optional dual monitor activation (currently disabled)
     ' DualDisplay()
-        
-    ' Event: detect user disconnection (USER_DISC rising edge)
-    DisconnID = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".USER_DISC");
-    EVENT("ADDPROG", DisconnID, "0>1", "L_DistArch/GENERAL", "", "UserDisconnection");
     
-    ' Event: detect user change
-    EVENT("ADDPROG", "@USER", "ALL>S", "L_DistArch/GENERAL", "", "UserUpdate");
-    
-    ' Event: detect version change
-    EVENT("ADDPROG", "@System.LocalHost.Version.Project", "ALL>S", "L_DistArch/GENERAL", "", "VersionUpdate");
     
     ' Remove delayed cyclic created in Main()
-    CYCLIC("DEL_EX", 10, "L_DistArch/GENERAL", "", "Main2");
+    CYCLIC("DEL_EX", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
     
     ' Log module initialization
-    TRACE("LOG", "***** SYS_CLSERV : Client-Server Management module loaded ****");
+    TRACE("LOG", "***** L_ArchDist : Client-Server Management module loaded ****");
 
 End Sub
 
 
-'---------------------------------------
-' ActiveUpdate
-'---------------------------------------
-' Purpose:
-'   Update the ACTIVE flag for the current station.
-'   - Sets ACTIVE = 1 if the station is the active node 
-'     in the realtime redundancy association.
-'   - Otherwise sets ACTIVE = 0.
-'---------------------------------------
-
-Sub ActiveUpdate()
-
-    IF (@System.ASSOC_RT.LocalHost == 1) THEN			' <- UPDATE
-        @LAN.ACTIVE = 1;
-    ELSE
-        @LAN.ACTIVE = 0;
-    END IF
-    
-End Sub
-
 
 '---------------------------------------
-' VersionUpdate
+' UserReload
 '---------------------------------------
 ' Purpose:
-'   Update project and library version information
-'   for the current station in the LAN namespace.
-'   - VERSION_P : Project version
-'   - VERSION_L : Library version
-
-' Notes:
-'   LAN.<Station>.VERSION_P and LAN.<Station>.VERSION_L
-'   are defined in Application Architect.
-'---------------------------------------
-
-Sub VersionUpdate()
-
-    Dim Version_P As Str;
-    Dim Version_L As Str;
-
-    ' Project version
-    Version_P = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".VERSION_P");
-    ?Version_P = @System.LocalHost.Version.Project;
-
-    ' Library version
-    Version_L = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".VERSION_L");
-    ?Version_L = @System.LocalHost.Version.Library;
-    ' Optional debug trace
-    ' TRACE("LOG", ADDSTRING("VersionUpdate: ", @System.Station_Name," Proj=", @System.LocalHost.Version.Project," Lib=", @System.LocalHost.Version.Library));
-
-End Sub
-
-
-'---------------------------------------
-' ControlloUpgrade
-'---------------------------------------
-' Purpose:
-'   Cyclic routine that manages:
-'   - SCADA restart request (RESET variable)
+'   Event routine that manages:
 '   - Reload of user file USER.DAT (USER_RELOAD variable)
-'   - Update of execution mode (RUNNINGMODE variable)
 '
 ' Variables:
-'   LAN.<Station>.RESET        - Restart trigger
-'   LAN.<Station>.USER_RELOAD  - Reload trigger for user.dat
-'   LAN.<Station>.RUNNINGMODE  - Current execution mode
+'   <Architecture>.<Station>.USER_RELOAD  - Reload trigger for user.dat
 '
-' Notes:
+' Notes: (Todo: find a way to replace this 15s cyclic by events)
 '   - Variables are defined in Application Architect.
-'   - Batch "user_load.bat" must exist in project folder \TP\
-'     and must be configured with the correct SOURCE (central folder)
-'     and DEST (local project folder).
-'   - Typical logic of user_load.bat:
-'       robocopy \\srv-pcvue.pcvue.cloud\Central\TEST_17\LATEST\C\user.dat 
-'                "C:\ARC Informatique\PcVue 16\data\usr\TEST_17\C\" 
-'                /COPY:DATS /R:3 /W:5
+'   - Batch "user_load.bat" must exist in library folder \TP\
 '     This copies the updated user.dat from the central folder to the
 '     local station's project directory, only if newer.
-'---------------------------------------'---------------------------------------
+'---------------------------------------
 
-Sub ControlloUpgrade()
+Sub UserReload()
 
     Dim VarReset        As Str;
     Dim VarUser         As Str;
@@ -172,54 +98,42 @@ Sub ControlloUpgrade()
     Dim RunningMode     As Single;
     Dim RunService      As Single;
     Dim RunRDS          As Single;
-    
-    ' Keep ACTIVE flag updated
-    ActiveUpdate();
 
-    '-----------------------------------
-    ' Restart request management
-    '-----------------------------------
-    VarReset = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".RESET");
-    IF (?VarReset == 1) THEN
-    	PROGRAM("FUNCTION", "L_DistArch/GENERAL", "", "Restart_PcVue");
-    END IF
 
     '-----------------------------------
     ' User reload management
     '-----------------------------------
-    VarUser = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".USER_RELOAD");
 
-    IF (?VarUser == 1) THEN	
-    	TRACE("LOG", ADDSTRING("ControlloUpgrade: reload requested by station ", @SYSTEM.STATION_NAME));
+   	TRACE("LOG", ADDSTRING("UserReload: reload requested by station ", @SYSTEM.STATION_NAME));
 
-        ' Build batch path -> <ProjectDir>\TP\user_load.bat
-        LoadCmd = ADDSTRING(GETPROJECTDIR(), "\\TP\\user_load.bat");
+    ' Build batch path -> <ProjectDir><LibraryDir>\TP\user_load.bat
+    LoadCmd = ADDSTRING(GETPROJECTDIR(), "\\LIB\\L_DistArch\\TP\\user_load.bat");
 
-        TRACE("LOG", ADDSTRING("ControlloUpgrade: executing reload with command ", LoadCmd));
+    TRACE("LOG", ADDSTRING("UserReload: executing reload with command ", LoadCmd));
         
-        ' Launch system command (not available on WebVue)
-        SYSTEM("SYSTEM", ADDSTRING("\"", LoadCmd, "\""));
+    ' Launch system command (not available on WebVue)
+    SYSTEM("SYSTEM", ADDSTRING("\"", LoadCmd, "\""));
 
-        ' Reset flag
-        ?VarUser = 0;
+    ' Reset flag
+    Set(GetArg("VARNAME"), 0);
+    Sendlist("BLOC");
 
-        TRACE("LOG", ADDSTRING("ControlloUpgrade: user reload completed on ", @System.Station_Name));
-    END IF
+    TRACE("LOG", ADDSTRING("UserReload: user reload completed on ", @System.Station_Name));
 
     '-----------------------------------
     ' Running mode update
     '-----------------------------------
-    VarRunningMode = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".RUNNINGMODE");
+    'VarRunningMode = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".RUNNINGMODE");
 
-    RunService = TOS(@System.LocalHost.Environment.RunningAsService);
-    RunRDS     = TOS(@System.LocalHost.Environment.RunningInRemoteDesktopSession);
+    'RunService = TOS(@System.LocalHost.Environment.RunningAsService);
+    'RunRDS     = TOS(@System.LocalHost.Environment.RunningInRemoteDesktopSession);
 
     ' Encode mode:
     '   1 = Console
     '   2 = Service
     '   3 = RDS
-    RunningMode = (1 + (RunService * 1) + (RunRDS * 2));
-    ?VarRunningMode = RunningMode;
+    'RunningMode = (1 + (RunService * 1) + (RunRDS * 2));
+    '?VarRunningMode = RunningMode;
 
 End Sub
 
@@ -236,7 +150,7 @@ End Sub
 '
 ' Notes:
 '   - Uses Windows API (GetCurrentProcessId, GetSvPath)
-'   - Requires svrestart.exe in project folder \TP\
+'   - Requires svrestart.exe in library folder \TP\
 '   - If user is online, restart is postponed
 '---------------------------------------
 
@@ -256,25 +170,30 @@ Sub Restart_PcVue()
     Dim LenPrjName      As Integer;
     Dim LenResult       As Integer;
     Dim ServiceRst      As Str;
+    Dim VarOverRide     As Str;
+    Dim bVarOverRide	As integer;
 
-    TRACE("LOG","***** SYS_CLSERV : SCADA Reload request reiceved ****");
+    TRACE("LOG","***** L_ArchDist : SCADA Reload request reiceved ****");
 
     '---------------------------------------
     ' Check if reload can be executed
     ' Conditions:
-    '   - No user logged in (LEN(USER)<2)
-    '   - Override flag set (@LAN.RST_OVERRIDE)
+    '   - No user logged in ((CmpString(" ", @USER)!=0) 
+    '   - Override flag set (<Architecture>.RST_OVERRIDE)
     '---------------------------------------
-    IF ((LEN(USER) < 2) || @LAN.RST_OVERRIDE) THEN
+    VarOverRide = AddString(GetArg("ARG1"), ".RST_OVERRIDE");
+    bVarOverRide = ?VarOverRide;
+    
+    IF ((CmpString(" ", @USER)==0) || bVarOverRide) THEN
 
-        ' Reset LAN.<Station>.RESET to 0 (acknowledge reload)
-        VarReset = ADDSTRING("LAN.", @SYSTEM.STATION_NAME, ".RESET");
+        ' Reset <Architecture>.<Station>.RESET to 0 (acknowledge reload)
+        VarReset = GetArg("VARNAME");
         ?VarReset = 0;
 
         ' Wait a few seconds to allow propagation across servers
         DELAY(3);
 
-        TRACE("LOG", "***** SYS_CLSERV : SCADA Reload in progress ****");
+        TRACE("LOG", "***** L_ArchDist : SCADA Reload in progress ****");
 
         ' Get process ID and paths
         MyId = GetCurrentProcessId();
@@ -304,7 +223,7 @@ Sub Restart_PcVue()
         '---------------------------------------
         IF (@System.LocalHost.Environment.RunningAsService == 1) THEN
             ServiceRst = "net stop SvCoreDaemon && net start SvCoreDaemon";
-            TRACE("LOG", ADDSTRING("***** SYS_CLSERV : SERVICE RESTART : ", ServiceRst, " ****"));
+            TRACE("LOG", ADDSTRING("***** L_ArchDist : SERVICE RESTART : ", ServiceRst, " ****"));
             SYSTEM("SYSTEM", ServiceRst);
             STOP();
         END IF
@@ -312,7 +231,7 @@ Sub Restart_PcVue()
         '---------------------------------------
         ' Build restart command (svrestart.exe)
         '---------------------------------------
-        SvRestartPath = ADDSTRING (SvProjectPath , "\\TP\\svrestart.exe" ); 
+        SvRestartPath = ADDSTRING (SvProjectPath , "\\LIB\\L_DistArch\\TP\\svrestart.exe" ); 
         SvRestartPath = ADDSTRING ("\"" , SvRestartPath); 
         SvRestartPath = ADDSTRING (SvRestartPath,"\""); 
         
@@ -353,7 +272,7 @@ Sub Restart_PcVue()
         '---------------------------------------
         ' If user is logged in -> postpone reload
         '---------------------------------------
-        TRACE("LOG", "***** SYS_CLSERV : User online, reload postponed... ****");
+        TRACE("LOG", "***** L_ArchDist : User online, reload postponed... ****");
     END IF
 
 End Sub
@@ -406,7 +325,7 @@ End Sub
 ' Purpose:
 '   Play buzzer sound if both enable and trigger flags are active.
 '
-' Variables:
+' Variables: (Todo: find a way to get variables names dynamically)
 '   LAN.<Station>.EN_BUZZER  - Enable flag for buzzer
 '   LAN.<Station>.BUZZER     - Trigger flag for buzzer
 '
@@ -422,16 +341,16 @@ Sub Buzzer()
 	Dim VarEnBuzzer as Str;
 	Dim VarBuzzer as Str;
 
-	VarEnBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
-	VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
+	'VarEnBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
+	'VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
 
-	IF (?VarEnBuzzer == 1 && ?VarBuzzer == 1) THEN
+	'IF (?VarEnBuzzer == 1 && ?VarBuzzer == 1) THEN
 
 		ProjectPath=GETPROJECTDIR();
 		ProjectPath=ADDSTRING(ProjectPath,"\\LIB\\L_DistArch\\TP\\wav_player.exe");
-		APPLICATION("LOAD",ProjectPath,"suonoalto.wav",5);
+	''	APPLICATION("LOAD",ProjectPath,"suonoalto.wav",5);
 
-	END IF
+	'END IF
 
 End Sub
 
@@ -442,7 +361,7 @@ End Sub
 ' Purpose:
 '   Set buzzer trigger flag (BUZZER = 1) if buzzer is enabled.
 '
-' Variables:
+' Variables: (Todo: find a way to get variables names dynamically)
 '   LAN.<Station>.EN_BUZZER  - Enable flag for buzzer
 '   LAN.<Station>.BUZZER     - Trigger flag for buzzer
 '---------------------------------------
@@ -453,14 +372,14 @@ Sub SetBuzzer()
 	Dim VarEnBuzzer as Str;
 	Dim VarBuzzer as Str;
 
-	VarEnBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
-	VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
+	'VarEnBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".EN_BUZZER");
+	'VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
 
-	IF (?VarEnBuzzer == 1 ) THEN
+	'IF (?VarEnBuzzer == 1 ) THEN
 
-		?VarBuzzer = (1);
+	''	?VarBuzzer = (1);
 
-	END IF
+	'END IF
 
 End Sub
 
@@ -471,7 +390,7 @@ End Sub
 ' Purpose:
 '   Reset buzzer trigger flag (BUZZER = 0).
 '
-' Variables:
+' Variables: (Todo: find a way to get variables names dynamically)
 '   LAN.<Station>.BUZZER     - Trigger flag for buzzer
 '---------------------------------------
 
@@ -481,36 +400,9 @@ Sub ResetBuzzer()
 	Dim VarEnBuzzer as Str;
 	Dim VarBuzzer as Str;
 
-	VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
-	?VarBuzzer = (0);
+	'VarBuzzer=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".BUZZER");
+	'?VarBuzzer = (0);
 
-End Sub
-
-
-'---------------------------------------
-' UserUpdate
-'---------------------------------------
-' Purpose:
-'   Update user information for the current station.
-'   - LAN.<Station>.USER     : Current logged-in user
-'   - LAN.<Station>.SV_VERS  : Current PcVue product version
-'
-' Notes:
-'   Variables are defined in Application Architect.
-'---------------------------------------
-
-Sub UserUpdate()
-
-	Dim UserID as Str;
-	Dim SV_Vers as Str;
-	
-	UserID=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".USER");
-	?UserID = @User;
-	
-	'Current PcVue Version Management
-	SV_Vers=ADDSTRING("LAN.",@SYSTEM.STATION_NAME,".SV_VERS");
-	?SV_Vers = @System.LocalHost.Environment.ProductVersion;
-	
 End Sub
 
 
@@ -518,12 +410,12 @@ End Sub
 ' UserDisconnection
 '---------------------------------------
 ' Purpose:
-'   Force user logout when LAN.<Station>.USER_DISC is triggered.
+'   Force user logout when <Architecture>.<Station>.USER_DISC is triggered.
 '
 ' Variables:
-'   LAN.<Station>.USER_DISC  - Trigger flag for user disconnection
+'   <Architecture>.<Station>.USER_DISC  - Trigger flag for user disconnection
 '
-' Notes:
+' Notes: 
 '   - Trigger is defined in Application Architect.
 '   - Resets USER_DISC flag to 0 after logout.
 '---------------------------------------
@@ -536,14 +428,14 @@ Sub UserDisconnection()
 	SYSTEM("LOGOUT");
 	TRACE("LOG",ADDSTRING("User disconnection override ",@USER));
 	
-	strDisconn = ADDSTRING("LAN.",System.Station_Name,".USER_DISC");
+	strDisconn = GetArg("VARNAME");
 	?strDisconn = 0;
 
 End Sub
 
 
 '---------------------------------------
-' BroadcastPassword
+' BroadcastUserMgt
 '---------------------------------------
 ' Purpose:
 '   Distribute user database updates (user.dat) to all stations.
@@ -557,51 +449,46 @@ End Sub
 '
 ' Notes:
 '   - Station list is defined in Stations[] global array.
-'   - Batch file "user_copy.bat" must be present in project folder \TP\
-'     and manually updated with the correct paths:
-'       - SOURCE = central folder (e.g. \\srv-pcvue.pcvue.cloud\Central\TEST_17)
-'       - DEST   = local project folder (e.g. C:\ARC Informatique\PcVue 16\data\usr\TEST_17\C\)
+'   - Batch file "user_copy.bat" must be present in library folder \TP\
 '   - The batch uses robocopy to copy the latest user.dat to the central folder.
 '   - Each client/server then reloads the updated file when USER_RELOAD = 1.
 '---------------------------------------
 
-Sub BroadcastPassword()
+Sub BroadcastUserMgt()
 
     Dim VarName as Str;
+    Dim StationName as Str;
     Dim i as Integer;
     Dim CopyCommand as Str;
-    Dim Stations[7] as Str;
-    
-    'UPDATE THIS PART WITH YOUR ARCHITECTURE
-    
-    Stations[1] = "CLT_REMOTE1"; 
-    Stations[2] = "CLT_REMOTE2"; 
-    Stations[3] = "CLTPCVUE1"; 
-    Stations[4] = "CLTPCVUE2"; 
-    Stations[5] = "SRVPCVUE1"; 
-    Stations[6] = "SRVPCVUE2";
+    Dim FileName as Str;
+    Dim lngBuffer1 as Long;
+    Dim Line as str;
 
 	' Execute batch to copy user.dat from local station to central folder
-	CopyCommand = ADDSTRING(GETPROJECTDIR(),"\\TP\\user_copy.bat");
+	CopyCommand = ADDSTRING(GETPROJECTDIR(),"\\LIB\\L_DistArch\\TP\\user_copy.bat");
 	SYSTEM("SYSTEM", ADDSTRING("\"", CopyCommand, "\""));
-	TRACE("LOG", ADDSTRING("BroadcastPassword: distributed user.dat from ", @SYSTEM.STATION_NAME));
+	TRACE("LOG", ADDSTRING("BroadcastUserMgt: distributed user.dat from ", @SYSTEM.STATION_NAME));
 	
 	' Notify other stations to reload user.dat
-    FOR (i=1;i<=6;i=i+1)
+	FileName = ADDSTRING(GETPROJECTDIR(),"\\TP\\DistArchStations.txt");
 
-        'Skip on local station
-        IF (CMPSTRING(Stations[i], @SYSTEM.STATION_NAME) == 0) Then
-        
-        	'Do nothing
-        	
-        ELSE
-        
-            Varname = ADDSTRING("LAN.", Stations[i], ".USER_RELOAD");
-            ?Varname = 1;
-            
-        END IF
-
-    NEXT 
+	Fopen(FileName, "r");
+	
+	While (Feof(FileName)==0)
+		VarName = Fgets(FileName, 255);
+		lngBuffer1 = Alloc_Buffer(255);
+		Put_Buffer(lngBuffer1, 0, VarName);
+		StationName = Asciifield("STR", lngBuffer1, Asciifield("COUNT", lngBuffer1, ".") , ".");
+		print(StationName);
+		
+		If ((CmpString(StationName, @System.Station_name)!=0) && (CmpString(StationName, "")!=0)) Then
+			VarName = AddString(VarName, ".USER_RELOAD");
+			?Varname = 1;		
+		End If
+		Free_Buffer(lngBuffer1);		
+	Wend
+	Fclose(FileName);
+	
 
 End Sub
 
@@ -630,7 +517,7 @@ Sub DualDisplay()
     ' Enable dual display only for selected stations
     IF ((@SYSTEM.STATION_NUMBER == 1) OR (@SYSTEM.STATION_NUMBER == 2)) THEN
 
-        TRACE("LOG", "***** SYS_CLSERV : Dual monitor activated ****");
+        TRACE("LOG", "***** L_ArchDist : Dual monitor activated ****");
 
         ' Switch to secondary screen (Region 2)
         REGION("SETREGION", 2);
@@ -641,7 +528,7 @@ Sub DualDisplay()
     END IF
 
     ' Remove this cyclic task (only runs once after startup)
-    CYCLIC("DEL", 10, "L_DistArch/GENERAL", "", "DualDisplay");
+    CYCLIC("DEL", 10, "L_DistArch/GENERAL.SCB", "", "DualDisplay");
 
     ' Reset selection and restore focus to primary screen
     REGION("SETSELECTION", 0);
@@ -688,52 +575,6 @@ Sub H_Switch()
 	
 	TRACE("LOG", ADDSTRING("H_Switch: ", cAssociation, " active=", cStationName, " passive=", cOtherStationName));
 	
-End Sub
-
-
-'---------------------------------------
-' RT_Switch
-'---------------------------------------
-' Purpose:
-'   Switch active/passive servers for real-time data redundancy.
-'   - Explicitly sets the role of the target station:
-'     "SET_SERVER_ACTIF" or "SET_SERVER_PASSIF".
-'
-' Arguments:
-'   ARG1 = Association name (real-time redundancy)
-'   ARG2 = Station name to switch
-'   ARG3 = Mode ("ACTIVE" or "PASSIVE")
-'
-' Notes:
-'   - LAN("SET_SERVER_MODE", ...) is used for real-time associations.
-'   - Only one server can be ACTIVE at a time.
-'---------------------------------------
-
-Sub RT_Switch()
-
-    Dim cAssociation As Str;
-    Dim cStationName As Str;
-    Dim cMode        As Str;
-    Dim iReturn      As Integer;
-
-    ' Retrieve arguments
-    cAssociation = Ucase(GetArg("ARG1"));
-    cStationName = Ucase(GetArg("ARG2"));
-    cMode        = Ucase(GetArg("ARG3"));
-    
-    ' Switch based on requested mode
-	IF (CmpString (cMode, "ACTIVE") == 0) Then
-  
-    	iReturn = LAN ("SET_SERVER_MODE", cAssociation, cStationName, "SET_SERVER_ACTIF");
-    
-  	ELSE
-  
-    	iReturn = LAN ("SET_SERVER_MODE", cAssociation, cStationName, "SET_SERVER_PASSIF");
-    
-  	END IF
-
-  	TRACE("LOG", ADDSTRING("RT_Switch: ", cAssociation, " station=", cStationName));
-
 End Sub
 
 
@@ -801,7 +642,7 @@ Sub LogUser()
             IF (RunningMode == 3) THEN VARIABLE("SETTATT", varLogin, 5, "RDS");     END IF
 
 			TRACE("LOG",(ADDSTRING("--- REMOTE TRACE LOGIN --- ",varLogin, " - ", strVarUser)));
-			CYCLIC("ADDPROG", 1,"L_DistArch/GENERAL", currBrch, "ResetTrigger", "LOGIN" );
+			CYCLIC("ADDPROG", 1,"L_DistArch/GENERAL.SCB", currBrch, "ResetTrigger", "LOGIN" );
 			?VarLogin = (1);
 
         '---------------------------------------
@@ -817,7 +658,7 @@ Sub LogUser()
             IF (RunningMode == 3) THEN VARIABLE("SETTATT", varLogout, 5, "RDS");     END IF
             		
 			TRACE("LOG",(ADDSTRING("--- REMOTE TRACE LOGOFF --- ",varLogout, " - ", strVarUser)));
-			CYCLIC("ADDPROG", 1,"L_DistArch/GENERAL", currBrch, "ResetTrigger", "LOGOUT" );
+			CYCLIC("ADDPROG", 1,"L_DistArch/GENERAL.SCB", currBrch, "ResetTrigger", "LOGOUT" );
 			?varLogout = (1);
 
 		END IF
@@ -849,7 +690,7 @@ Sub ResetTrigger()
 	strArg1 = GETARG("ARG1");
 	currBrch = GETARG("BRANCH");
 	
-	CYCLIC("DEL", 1, "L_DistArch/GENERAL", currBrch, "ResetTrigger" );
+	CYCLIC("DEL", 1, "L_DistArch/GENERAL.SCB", currBrch, "ResetTrigger" );
 	
 	'Varname costruisce la variabile bit che triggera la scrittura evento
 	varName=ADDSTRING(currBrch, ".",strArg1); 				
@@ -869,7 +710,7 @@ End Sub
 '   - Saves PNG files in project folder \HARDCOPY\
 '
 ' Notes:
-'   - Requires nircmd.exe in \TP\ folder of the project
+'   - Requires nircmd.exe in \TP\ folder of the library
 '   - File names include station name and timestamp
 '   - Region 1 = primary monitor, Region 2 = secondary monitor
 '---------------------------------------
@@ -878,9 +719,9 @@ Sub DualHardCopy()
 	Dim PrintLink as Str;
 	Dim Filename as Str;
 
-	' Path to nircmd.exe (must exist in \TP\)
+	' Path to nircmd.exe (must exist in \L_DistArch\TP\)
 	PrintLink = GETPROJECTDIR();
-	PrintLink = ADDSTRING(PrintLink,"\\TP\\nircmd.exe");
+	PrintLink = ADDSTRING(PrintLink,"\\LIB\\L_DistArch\\TP\\nircmd.exe");
 	
     ' Build screenshot filename: PROJECT\HARDCOPY\StationName-YYYY-MM-DD-HH-MM-SS.png
 	Filename = ADDSTRING("savescreenshot ","\"",GETPROJECTDIR(),"\\HARDCOPY\\");

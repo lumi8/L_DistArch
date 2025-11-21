@@ -4,6 +4,12 @@
 <Library Name="L_DistArch">
 <CategoriesList/>
 <ParametersList>
+<Parameter Name="ArchBranch">
+<nDataType>0</nDataType>
+<nType>1</nType>
+<DefaultValue>=Inst.FullBranch</DefaultValue>
+<EvaluationMode>1</EvaluationMode>
+</Parameter>
 <Parameter Name="pAllClient">
 <nDataType>0</nDataType>
 <nType>0</nType>
@@ -48,7 +54,7 @@
 <nPType>1</nPType>
 <nDataType>0</nDataType>
 <nType>0</nType>
-<DefaultValue/>
+<DefaultValue>#LC_AllStations</DefaultValue>
 <GblOverwriteMode>0</GblOverwriteMode>
 <GblObjectType>1</GblObjectType>
 <GblPropertyName>ClientListName</GblPropertyName>
@@ -61,6 +67,18 @@
 <nType>0</nType>
 <DefaultValue/>
 <GblOverwriteMode>0</GblOverwriteMode>
+<GblObjectType>1</GblObjectType>
+<GblPropertyName>ServerListName</GblPropertyName>
+<GblPropertyDefaultValue/>
+<GblFilters/>
+</Parameter>
+<Parameter Name="VarServerLocalList">
+<nPType>1</nPType>
+<nDataType>0</nDataType>
+<nType>1</nType>
+<DefaultValue>=Inst.Name</DefaultValue>
+<GblOverwriteMode>0</GblOverwriteMode>
+<GblEvaluationMode>2</GblEvaluationMode>
 <GblObjectType>1</GblObjectType>
 <GblPropertyName>ServerListName</GblPropertyName>
 <GblPropertyDefaultValue/>
