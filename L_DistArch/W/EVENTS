@@ -2,7 +2,7 @@ ASCII32
 W,BEGIN,"EVENTS","Alarms",""
 	TEMPLATE,"",0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0
 	POSITION,0,0
-	SIZE,2219,952,1920,1076,0,0,0,1920,1080,2199,903
+	SIZE,1920,952,1920,1076,0,0,0,1920,1080,1902,911
 	BACKCOLOREX,224,224,224,0,0,0
 	TITLE,1,"Events","ALARMES"
 	STYLE,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0
@@ -29,9 +29,724 @@ W,BEGIN,"EVENTS","Alarms",""
 	EVENTS,1
 	BINOBJ,"EVENTS.binary"
 W,END
+VBA_HOSTPROJECT,BEGIN
+	Option Explicit
+	
+	'// Initial declaration of DLL
+	 'read
+	   Private Declare Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" _
+	                 (ByVal lpApplicationName As String, _
+	                   ByVal lpKeyName As String, _
+	                   ByVal lpDefault As String, _
+	                   ByVal lpReturnedString As String, _
+	                   ByVal nSize As Long, _
+	                   ByVal lpFileName As String) As Long
+	                   
+	   'write & delete
+	   Private Declare Function WritePrivateProfileString Lib "kernel32" Alias "WritePrivateProfileStringA" _
+	                 (ByVal lpApplicationName As String, _
+	                   ByVal lpKeyName As String, _
+	                   ByVal lpString As String, _
+	                   ByVal lpFileName As String) As Long
+	                   
+	    'list
+	    Private Declare Function GetPrivateProfileSectionNames Lib "kernel32.dll" Alias "GetPrivateProfileSectionNamesA" _
+	                   (ByVal lpszReturnBuffer As String, _
+	                   ByVal nSize As Long, _
+	                   ByVal lpFileName As String) As Long
+	    
+	    Private DisableRefresh As Boolean
+	    
+	' Da mantenere allineata con le impostazioni filtro dell'oggetto Log
+	'                                      Bit0 Bit1 OnAck OnNotAck OffAck OffNotAck|         Allarme inibito e mascherato           | Utente Alm mask/unmask |    Login fail/in/out  |AckAlm |SendReg/txt
+	Private Const InitialEvMask As Double = 64 + 512 + 2048 + 4096 + 8192 + 16384 + 2097152 + 4194304 + 8388608 + 16777216 + 33554432 + 67108864 + 134217728 + 1073741824 + 128 + 256 + 65536 + 8 + 16
+	Private Const OpActFlags As Double = 1073741824 + 128 + 256 ' Login fail/in/out
+	Private CurrentEvMask As Double
+	
+	Private Function SetEvMaskFlags(flags As Double) As Double
+	    CurrentEvMask = CurrentEvMask Or flags
+	    SetEvMaskFlags = CurrentEvMask
+	End Function
+	Private Function ResetEvMaskFlags(flags As Double) As Double
+	    CurrentEvMask = CurrentEvMask And Not flags
+	    ResetEvMaskFlags = CurrentEvMask
+	End Function
+	
+	
+	Private Function GetIniSections(FileName As String) As String()
+	Dim strBuffer As String, intLen As Integer
+	On Error GoTo ErrHandler
+	intLen = -1
+	
+	Do While (intLen = Len(strBuffer) - 2) Or (intLen = -1)
+	
+	If strBuffer = vbNullString Then
+	strBuffer = Space(256)
+	Else
+	strBuffer = String(Len(strBuffer) * 2, 0)
+	End If
+	
+	intLen = GetPrivateProfileSectionNames(strBuffer, Len(strBuffer), FileName)
+	
+	
+	Loop
+	
+	strBuffer = Left$(strBuffer, intLen)
+	
+	GetIniSections = Split(strBuffer, vbNullChar)
+	
+	ReDim Preserve GetIniSections(UBound(GetIniSections) - 1) As String
+	ErrHandler:
+	
+	End Function
+	
+	
+	
+	Private Sub FilterListRefresh(FileName As String)
+	Dim Sections() As String
+	Dim Section As Variant
+	   
+	On Error GoTo ErrHandler
+	    ThisMimic.Graphics.Item("ComboFilter").Clear
+	    ThisMimic.Graphics.Item("ComboFilter").addItem ("")
+	
+	    Sections = GetIniSections(FileName)
+	
+	For Each Section In Sections
+	    ThisMimic.Graphics.Item("ComboFilter").addItem (Section)
+	Next
+	ErrHandler:
+	
+	End Sub
+	
+	Private Sub DeleteKey(FileName As String, SectionName As String)
+	
+	      
+	    WritePrivateProfileString SectionName, vbNullString, vbNullString, FileName
+	
+	
+	End Sub
+	
+	Private Sub WriteProfile(SectionName As String, KeyName As String, KeyValue As String, FileName As String)
+	
+	    WritePrivateProfileString SectionName, KeyName, KeyValue, FileName
+	
+	End Sub
+	
+	
+	Private Sub CheckAckOn_Click()
+	
+	CheckNoAckOn_Click
+	
+	End Sub
+	
+	Private Sub CheckNoAckOff_Click()
+	
+	CheckNoAckOn_Click
+	
+	
+	End Sub
+	
+	Private Sub CheckNoAckOn_Click()
+	
+	' Se per caso non Š stata inizializzata
+	If CurrentEvMask = 0 Then
+	    CurrentEvMask = InitialEvMask
+	End If
+	
+	If CheckNoAckOn.Value = False And CheckNoAckOff.Value = False And CheckAckOn.Value = False Then 'Nothing
+	
+	'ThisMimic.Graphics.Item("Log1").SetEventMask 22528
+	ThisMimic.Graphics.Item("Log1").SetEventMask SetEvMaskFlags(InitialEvMask) ' AS 14/11/2014
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = True And CheckNoAckOff.Value = False And CheckAckOn.Value = False Then 'NoAckOn
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 4096
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = False And CheckNoAckOff.Value = True And CheckAckOn.Value = False Then 'NoAckOff
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 16384
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = False And CheckNoAckOff.Value = False And CheckAckOn.Value = True Then 'AckOn
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 2048
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = True And CheckNoAckOff.Value = True And CheckAckOn.Value = False Then 'NoAckOn & NoAckOff
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 20480
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = True And CheckNoAckOff.Value = False And CheckAckOn.Value = True Then 'NoAckOn & AckOn
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 6144
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = False And CheckNoAckOff.Value = True And CheckAckOn.Value = True Then 'NoAckOff & AckOn
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 18432
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	If CheckNoAckOn.Value = True And CheckNoAckOff.Value = True And CheckAckOn.Value = True Then 'NoAckOn & NoAckOff & AckOn
+	
+	ThisMimic.Graphics.Item("Log1").SetEventMask 22528
+	ThisMimic.Graphics.Item("Log1").Execute
+	
+	End If
+	
+	End Sub
+	
+	Private Sub cmdElimina_Click()
+	Dim Profile As String
+	Profile = ThisMimic.Graphics.Item("ComboFilter").Text
+	    
+	    DeleteKey ThisProject.Path & "\C\" & "logfilter.ini", Profile
+	    FilterListRefresh ThisProject.Path & "\C\" & "logfilter.ini"
+	
+	End Sub
+	
+	Private Sub cmdResetAllFilters_Click()
+	
+	'Resetta filtri per eventi
+	ThisMimic.Graphics.Item("ComboDom").Text = ""               'Reset filtro DOMINIO
+	ThisMimic.Graphics.Item("Log1").BasicChangeDomain ""
+	'ThisMimic.Graphics.Item("ComboDueColonne").Text = ""        'Reset filtro NATURA
+	ThisMimic.Graphics.Item("Log1").BasicChangeNature ""
+	ResetFiltroCella_Click                                      'Reset filtro per CELLA
+	'ResetFiltroDescrizione_Click                                'Reset filtro per DESCRIZIONE
+	
+	ThisMimic.Graphics.Item("ComboLivMin").Text = ""
+	ThisMimic.Graphics.Item("ComboLivMax").Text = ""
+	ThisMimic.Graphics.Item("CheckNoAckOff").Value = True
+	ThisMimic.Graphics.Item("CheckAckOn").Value = True
+	ThisMimic.Graphics.Item("CheckNoAckOn").Value = True
+	
+	ThisMimic.Graphics.Item("ComboFilter").Text = ""
+	
+	End Sub
+	
+	Private Sub cmdSalva_Click()
+	Dim Profile As String
+	Profile = ThisMimic.Graphics.Item("ComboFilter").Text
+	
+	    WriteProfile Profile, "Domain", ThisMimic.Graphics.Item("ComboDom").Text, ThisProject.Path & "\C\" & "logfilter.ini"
+	    WriteProfile Profile, "Nature", ThisMimic.Graphics.Item("Combonat").Text, ThisProject.Path & "\C\" & "logfilter.ini"
+	    
+	    WriteProfile Profile, "LivMin", ThisMimic.Graphics.Item("ComboLivMin").Text, ThisProject.Path & "\C\" & "logfilter.ini"
+	    WriteProfile Profile, "LivMax", ThisMimic.Graphics.Item("ComboLivMax").Text, ThisProject.Path & "\C\" & "logfilter.ini"
+	    
+	    WriteProfile Profile, "AckOn", ThisMimic.Graphics.Item("CheckAckOn").Value, ThisProject.Path & "\C\" & "logfilter.ini"
+	    WriteProfile Profile, "NoAckOn", ThisMimic.Graphics.Item("CheckNoAckOn").Value, ThisProject.Path & "\C\" & "logfilter.ini"
+	    WriteProfile Profile, "NoAckOff", ThisMimic.Graphics.Item("CheckNoAckOff").Value, ThisProject.Path & "\C\" & "logfilter.ini"
+	
+	    WriteProfile Profile, "Cell", ThisProject.Variables("logfiltrocell%").Value, ThisProject.Path & "\C\" & "logfilter.ini"
+	    WriteProfile Profile, "Desc", ThisProject.Variables("filtrodesc%").Value, ThisProject.Path & "\C\" & "logfilter.ini"
+	
+	    FilterListRefresh ThisProject.Path & "\C\" & "logfilter.ini"
+	
+	End Sub
+	
+	Private Sub ComboDom_Change()
+	    Dim Domain As String
+	
+	    'Imposta filtro su DOMINIO (SS)
+	    Domain = ThisMimic.Graphics.Item("ComboDom").Text
+	    ThisMimic.Graphics.Item("Log1").BasicChangeDomain Domain
+	    
+	     'Aggiorna combobox NATURA (Quadri)
+	    ThisMimic.Graphics.Item("Combonat").Clear
+	    If StrComp(Domain, "SS100", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC101")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009150EH100")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009100EH101")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EL101")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EP101")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EP102")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("014800EG101")
+	            End If
+	            If StrComp(Domain, "SS100B", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC201B")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009150EH100")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009100EH201")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EL201")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EP201")
+	       ' ThisMimic.Graphics.Item("Combonat").addItem ("009200EP202")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004800EG201")
+	            End If
+	    If StrComp(Domain, "SS200", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC201")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019100EH201")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019201EP202")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019202EP202")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP201")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EL201")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("014800EG201")
+	    End If
+	    If StrComp(Domain, "SS300", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC301")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019100EH301")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019203EP302")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019204EP302")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP301")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EL301")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("014800EG301")
+	    End If
+	    If StrComp(Domain, "SS400", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC401")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019100EH401")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP402")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP401")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EL401")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("014800EG401")
+	    End If
+	    
+	    If StrComp(Domain, "SS500", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029700EC501")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("024800EC502")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029100EH501")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EP501")
+	      '  ThisMimic.Graphics.Item("Combonat").addItem ("029200EP502")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EL501")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("024800EG501")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("024800EG502")
+	    End If
+	    
+	    If StrComp(Domain, "SS600", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC601")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019100EH601")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP601")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP602")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP603")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EL601")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("014800EG601")
+	    End If
+	    
+	    If StrComp(Domain, "SS700", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029700EC701")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029100EH701")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EP701")
+	       ' ThisMimic.Graphics.Item("Combonat").addItem ("029200EP702")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EP703")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EP704")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EL701")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("024800EG701")
+	    End If
+	    
+	    If StrComp(Domain, "SS800", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029700EC801")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029100EH801")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EP801")
+	       ' ThisMimic.Graphics.Item("Combonat").addItem ("029200EP802")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EP803")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("029200EL801")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("024800EG801")
+	    End If
+	    
+	    If StrComp(Domain, "ADM", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC041")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EP041")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EP042")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EP043")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009200EL041")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("014800EG041")
+	    End If
+	      If StrComp(Domain, "GENERATION_YARD", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004700EG001")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004700EG002")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004700EG003")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004700EG004")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004700EG005")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("004700EG006")
+	       ' ThisMimic.Graphics.Item("Combonat").addItem ("004700EG007")
+	        'ThisMimic.Graphics.Item("Combonat").addItem ("004700EG008")
+	    End If
+	    If StrComp(Domain, "CCR", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("009700EC001")
+	    End If
+	    If StrComp(Domain, "SSEPF", 1) = 0 Then
+	        ThisMimic.Graphics.Item("Combonat").addItem ("")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019100EH061")
+	        ThisMimic.Graphics.Item("Combonat").addItem ("019200EP061")
+	    End If
+	
+	End Sub
+	
+	'Private Sub ComboDueColonne_Change()
+	'    Dim Nature As String
+	'
+	'    Nature = ThisMimic.Graphics.Item("ComboDueColonne").Text
+	'    ThisMimic.Graphics.Item("Log1").BasicChangeNature Nature
+	'End Sub
+	
+	'-----Gestione filtro sulla cella
+	
+	Private Sub FiltraCella_Click()
+	    Dim filtro As String
+	    Dim FiltroCell As String
+	    Dim FiltroDesc As String
+	        
+	    FiltroCell = ThisProject.Variables("logfiltrocell%").Value                                        'Prelevo filtro impostato per cella da usare per #A8
+	    FiltroDesc = ThisProject.Variables("filtrodesc%").Value
+	    If Len(FiltroCell) = 0 And Len(FiltroDesc) = 0 Then
+	        Exit Sub
+	    End If
+	    If Len(FiltroCell) > 0 And Len(FiltroDesc) = 0 Then filtro = "=(#A8 INC " & FiltroCell & ")"        'Filtro composto solo Cella
+	    If Len(FiltroDesc) > 0 And Len(FiltroCell) = 0 Then filtro = "=(#T INC " & FiltroDesc & ")"         'Filtro composto solo Descrizione
+	    If Len(FiltroCell) > 0 And Len(FiltroDesc) > 0 Then
+	        filtro = "=(#A8 INC " & FiltroCell & ")&&(#T INC " & FiltroDesc & ")"                           'Filtro composto per Cella e Descrizione
+	    End If
+	    Me.txtCellDescFilter.Text = filtro
+	    
+	    If filtro = "" Then
+	        Log1.BasicChangeAttFilter ""
+	        Me.FiltroCell.BackColorPrimary = RGB(255, 255, 255)
+	        Me.FiltroDescr.BackColorPrimary = RGB(255, 255, 255)
+	    Else
+	        Log1.BasicChangeAttFilter filtro
+	        Me.FiltroCell.BackColorPrimary = RGB(255, 255, 0)
+	        Me.FiltroDescr.BackColorPrimary = RGB(255, 255, 0)
+	    End If
+	    
+	End Sub
+	
+	
+	Private Sub Log1_OnLineSelect(ByVal cx As Integer, ByVal cy As Integer, ByVal handle As String, ByVal selected As Boolean)
+	
+	End Sub
+	
+	Private Sub ResetFiltroCella_Click()
+	    ThisProject.Variables("logfiltrocell%").Value = ""
+	    Me.FiltroCell.BackColorPrimary = RGB(255, 255, 255)
+	    ThisProject.Variables("filtrodesc%").Value = ""
+	    Me.FiltroDescr.BackColorPrimary = RGB(255, 255, 255)
+	    Log1.BasicChangeAttFilter ""
+	End Sub
+	
+	Private Sub ComboFilter_Click()
+	    Dim Rec As String
+	    Dim NC As Long
+	    
+	    If ThisMimic.Graphics.Item("ComboFilter").Text = "" Then
+	        ThisMimic.Graphics.Item("ComboDom").Text = ""
+	        ThisMimic.Graphics.Item("Combonat").Text = ""
+	        ThisMimic.Graphics.Item("ComboLivMin").Text = ""
+	        ThisMimic.Graphics.Item("ComboLivMax").Text = ""
+	        ThisMimic.Graphics.Item("CheckNoAckOff").Value = False
+	        ThisMimic.Graphics.Item("CheckAckOn").Value = False
+	        ThisMimic.Graphics.Item("CheckNoAckOn").Value = False
+	        ThisProject.Variables("logfiltrocell%").Value = ""
+	        ThisProject.Variables("filtrodesc%").Value = ""
+	        CheckNoAckOn_Click
+	        
+	    Else
+	        Rec = String(255, 0)
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "Domain", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("ComboDom").Text = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "Nature", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("Combonat").Text = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "LivMin", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("ComboLivMin").Text = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "LivMax", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("ComboLivMax").Text = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "NoAckOff", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("CheckNoAckOff").Value = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "AckOn", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("CheckAckOn").Value = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "NoAckOn", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisMimic.Graphics.Item("CheckNoAckon").Value = Rec
+	        
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "Cell", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisProject.Variables("logfiltrocell%").Value = Rec
+	        NC = GetPrivateProfileString(ThisMimic.Graphics.Item("ComboFilter").Text, "Desc", "", Rec, 255, ThisProject.Path & "\C\" & "logfilter.ini")
+	        ThisProject.Variables("filtrodesc%").Value = Rec
+	        If Len(ThisProject.Variables("filtrodesc%").Value) + Len(ThisProject.Variables("logfiltrocell%").Value) > 0 Then FiltraCella_Click
+	        
+	        CheckNoAckOn_Click
+	    End If
+	    
+	End Sub
+	
+	Private Sub ComboLivMax_Change()
+	    Dim lvlmax As Integer
+	    Dim lvlMin As Integer
+	
+	    If ThisMimic.Graphics.Item("ComboLivMax").Text = "" Then
+	        lvlmax = 29
+	    Else
+	        lvlmax = CInt(Left(ThisMimic.Graphics.Item("ComboLivMax").Text, 2))
+	    End If
+	
+	
+	    If ThisMimic.Graphics.Item("ComboLivMin").Text = "" Then
+	        lvlMin = 0
+	    Else
+	        lvlMin = CInt(Left(ThisMimic.Graphics.Item("ComboLivMin").Text, 2))
+	    End If
+	
+	    ThisMimic.Graphics.Item("Log1").SetMinMax lvlMin, lvlmax
+	    ThisMimic.Graphics.Item("Log1").Execute
+	End Sub
+	
+	Private Sub ComboLivMin_Change()
+	    ComboLivMax_Change
+	End Sub
+	
+	Private Sub ComboNat_Change()
+	    Dim Nature As String
+	
+	    Nature = ThisMimic.Graphics.Item("ComboNat").Text
+	    ThisMimic.Graphics.Item("Log1").BasicChangeNature Nature
+	End Sub
+	
+	'Private Sub FiltraDescrizione_Click()
+	'    Dim filtro As String
+	'    ' Se per caso non Š stata inizializzata
+	'    If CurrentEvMask = 0 Then
+	'        CurrentEvMask = InitialEvMask
+	'    End If
+	'    filtro = ThisProject.Variables("filtrodesc%").Value
+	'    If filtro = "" Then
+	'        Log1.BasicChangeAttFilter ""
+	'        Me.FiltroDescr.BackColorPrimary = RGB(255, 255, 255)
+	'        ThisMimic.Graphics.Item("Log1").SetEventMask SetEvMaskFlags(OpActFlags) ' Mostra login/logout
+	'        ThisMimic.Graphics.Item("Log1").Execute
+	'    Else
+	'        Log1.BasicChangeAttFilter "=(#T INC " & filtro & ")"
+	'        Me.FiltroDescr.BackColorPrimary = RGB(255, 255, 0)
+	'        'NoLogInOut.Value = True
+	'        ThisMimic.Graphics.Item("Log1").SetEventMask ResetEvMaskFlags(OpActFlags) ' Nascondi login/logout
+	'        ThisMimic.Graphics.Item("Log1").Execute
+	'    End If
+	'End Sub
+	'
+	'Private Sub ResetFiltroDescrizione_Click()
+	'    ThisProject.Variables("filtrodesc%").Value = ""
+	'    Log1.BasicChangeAttFilter ""
+	'    Me.FiltroDescr.BackColorPrimary = RGB(255, 255, 255)
+	'    'NoLogInOut.Value = False
+	'    ThisMimic.Graphics.Item("Log1").SetEventMask SetEvMaskFlags(OpActFlags) ' Mostra login/logout
+	'    ThisMimic.Graphics.Item("Log1").Execute
+	'End Sub
+	
+	
+	Private Sub Mimic_Open()
+	' Inizializziazione stato filtro
+	CurrentEvMask = InitialEvMask
+	
+	'// Inizializzazione combo box con tutti i valori
+	
+	'Dominio
+	     ThisMimic.Graphics.Item("Combodom").addItem ("")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS100")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS100B")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS200")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS300")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS400")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS500")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS600")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS700")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SS800")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("SSEPF")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("ADM")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("CCR")
+	    ThisMimic.Graphics.Item("Combodom").addItem ("GENERATION_YARD")
+	
+	    
+	'Natura
+	    'ThisMimic.Graphics.Item("Combonat").addItem ("")
+	    'ThisMimic.Graphics.Item("Combonat").addItem ("Sintetici")
+	    'ThisMimic.Graphics.Item("Combonat").addItem ("Dettaglio")
+	    'ThisMimic.Graphics.Item("Combonat").addItem ("Master")
+	
+	''Natura con ComboBox a due colonne per mostrare anche descrizione
+	'    ThisMimic.Graphics.Item("ComboDueColonne").Clear
+	'    ThisMimic.Graphics.Item("ComboDueColonne").Width = 300
+	'    ThisMimic.Graphics.Item("ComboDueColonne").ColumnWidths = "80;140"
+	'
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(0, 1) = ""
+	'    '----SS100
+	  ' ThisMimic.Graphics.Item("ComboDueColonne").addItem ("009150EH100")
+	  ' ThisMimic.Graphics.Item("ComboDueColonne").List(1, 1) = "SS100 HV"
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").addItem ("009100EH101")
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").List(2, 1) = "  SS100 MV"
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").addItem ("009200EL101")
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").List(3, 1) = "  SS100 LV ASP"
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").addItem ("009200EP101")
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").List(4, 1) = "  SS100 LV Emergency"
+	  '  ThisMimic.Graphics.Item("ComboDueColonne").addItem ("009200EP102")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(5, 1) = "  SS100 LV Emergency"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("004800EM101")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(6, 1) = "  SS100 EDG Shelter"
+	'    '-----SS600
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("0191000EH601")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(7, 1) = "SS600 MV"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem (" 019200EP601")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(8, 1) = "  SS600 LV Emergency"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019200EP602")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(9, 1) = "  SS600 LV"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019200EP603")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(10, 1) = "  SS600 LV"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019200EL601")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(11, 1) = "  SS600 LV ASP"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("014800EM601")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(12, 1) = "  SS600 EDG Shelter"
+	'    '-----SS400
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019100EH401")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(13, 1) = "SS400 MV"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019200EP401")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(14, 1) = "  SS400 LV Emergency"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019200EP402")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(15, 1) = "  SS400 LV Emergency"
+	'    ThisMimic.Graphics.Item("ComboDueColonne").addItem ("019200EL401")
+	'    ThisMimic.Graphics.Item("ComboDueColonne").List(16, 1) = "  SS400 LV ASP"
+	    
+	
+	'Min Priority
+	    ThisMimic.Graphics.Item("ComboLivMin").addItem ("")
+	    ThisMimic.Graphics.Item("ComboLivMin").addItem ("0 - System")
+	    ThisMimic.Graphics.Item("ComboLivMin").addItem ("1 - Alarm")
+	    ThisMimic.Graphics.Item("ComboLivMin").addItem ("2 - Trip")
+	    'ThisMimic.Graphics.Item("ComboLivMin").addItem ("3 - Evento")
+	    
+	'Max Priority
+	    ThisMimic.Graphics.Item("ComboLivMax").addItem ("")
+	    ThisMimic.Graphics.Item("ComboLivMax").addItem ("0 - System")
+	    ThisMimic.Graphics.Item("ComboLivMax").addItem ("1 - Alarm")
+	    ThisMimic.Graphics.Item("ComboLivMax").addItem ("2 - Trip")
+	    'ThisMimic.Graphics.Item("ComboLivMax").addItem ("3 - Evento")
+	    
+	'NoAckOn & AckOn & NoAckOff
+	    ThisMimic.Graphics.Item("CheckNoAckOn").Value = False
+	    ThisMimic.Graphics.Item("CheckAckOn").Value = False
+	    ThisMimic.Graphics.Item("CheckNoAckOff").Value = False
+	    
+	
+	'Pulizia iniziale
+	'ThisMimic.Graphics.Item("Combodom").Text = "*"
+	'ThisMimic.Graphics.Item("Combonat").Text = "*"
+	ThisProject.Variables("logfiltrocell%").Value = ""
+	ThisProject.Variables("filtrodesc%").Value = ""
+	
+	'Refresh Filter List
+	FilterListRefresh ThisProject.Path & "\C\" & "logfilter.ini"
+	End Sub
+	
+	Private Sub NoLogInOut_Click()
+	    If NoLogInOut.Value = True Then
+	        ThisMimic.Graphics.Item("Log1").SetEventMask ResetEvMaskFlags(OpActFlags) ' Nascondi login/logout
+	    Else
+	        ThisMimic.Graphics.Item("Log1").SetEventMask SetEvMaskFlags(OpActFlags) ' Mostra login/logout
+	    End If
+	    ThisMimic.Graphics.Item("Log1").Execute
+	End Sub
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+VBA_HOSTPROJECT,END
+VBA_REFERENCES,BEGIN
+	"stdole", 2, 0, "{00020430-0000-0000-C000-000000000046}"
+	"UIALMLib", 1, 0, "{8A2CA162-07F7-11D1-A079-0020AF29DCAE}"
+	"MimicControls", 1, 0, "{C959A51F-AAFE-40D5-A4A7-3A00A7AF76B4}"
+	"UILOGLib", 1, 0, "{8F669BE2-0821-11D1-A079-0020AF29DCAE}"
+	"FrontVueEx", 2, 0, "{141E3228-8E65-44D3-9F4F-DD4799D613BB}"
+	"MSForms", 2, 0, "{0D452EE1-E08F-101A-852E-02608C4D0BB4}"
+VBA_REFERENCES,END
 FONTS,BEGIN
 	FONT,1,16,7,700,0,0,"System",0,0
-	FONT,2,-18,0,700,0,0,"Arial",0,0
+	FONT,2,-17,0,700,0,0,"Arial",0,0
 	FONT,3,-12,0,400,0,0,"Arial",0,1
 	FONT,4,-21,0,400,0,0,"Arial",0,1
 	FONT,5,-13,0,400,0,0,"Arial Rounded MT Bold",0,1
@@ -59,13 +774,13 @@ COLORS,BEGIN
 	COLOREX,15,0,0,64,0,0,0
 COLORS,END
 O,BEGIN,LOG,"Log1"
-	B,8,24,1909,782,10,210,1,0,6400,0,1,1,0,0,1,0,-1
+	B,8,24,1909,782,10,210,1,0,6400,0,1,1,1,0,1,0,1
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 	AST,5,2,COLOR,1,COLOR,2,0,COLOR,4,0,COLOR,4,0,COLOR,3,0,COLOR,3,0
 	TOOLBAR,1,8192,F_NOACKON,F_ACKON,F_NOACKOFF,F_ACKOFF,F_NS,F_ON,F_OFF,SEPARATOR,F_BITON,F_BITOFF,F_BITNS,SEPARATOR,F_PROG,F_COMMAND,F_ACK,F_LOGON,F_MASKACTION,SEPARATOR,F_TIME,SEPARATOR,A_PRINT,F_MASK,F_MASKPROG,F_MASKVAR,F_INHIB,F_NA,F_MASKEXPR,SEPARATOR,F_NOBLINK,SEPARATOR,F_AUTOREF
 	SCROLL,0,17,2
 	BLINK,0
-	HEADER,1,22,8,194,192,129,121,79,861,303,706,0,0,0,0,0,0,0,0,0,0,0,0
+	HEADER,1,22,8,194,192,129,121,79,861,303,706
 	TITLE,"Date - Time","#D/#M/#Y - #h:#m:#s.#l","Date","#D/#M/#Y"
 	TITLE,"State","#E","Time","#h:#m:#s.#l"
 	TITLE,"Substation"," #d","Event","#E"
@@ -75,7 +790,7 @@ O,BEGIN,LOG,"Log1"
 	TITLE,"Station Nr. - User","#S     #N","",""
 	TITLE,"Priority/Variable","#A - #t","",""
 	LINE,FONT,2,COLOR,6,COLOR,5,1
-	EXEC,100,0,1,1,1,1,1,0,0,"",0,0,0,-1,0,0,2,5,1,1,0.000000,0,1,0,0,1,2,0
+	EXEC,100,0,1,1,1,1,1,0,0,"",0,0,0,-1,0,0,2,5,1,1,0.000000,0,1,0,0,1,-1
 	FILTER,"LL_ALL","","",0,29,1,1,1,1,0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,0,0
 	MENU,0,1304,65535,6029354,8060999,4587576,3538998,4325433,3276869,3145773,3276856,2949169,3211313,3211332,4259885,3604528,2949177,3145776,3145778,4587585,3735602,4390980,4522049,2293885,3014705,2144
 O,END
@@ -99,11 +814,11 @@ O,BEGIN,RR,"NAV_ALARM_BACKGROUND_PREMIUM_ANTHRACITE1"
 	PP,9,9
 O,END
 O,BEGIN,T,"FiltroDescr"
-	B,532,850,770,879,532,850,1,0,6400,0,1,1,0,0,1,0,-1
+	B,532,850,770,879,532,850,1,0,6400,0,1,1,1,0,1,0,2
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,4,0,COLOR,4,0,COLOR,1,0,COLOR,1
 	AST,5,1,COLOR,1,COLOR,4,0,COLOR,6,0,COLOR,6,0,COLOR,6,0,COLOR,6,0
 	PP,1,532,850,2,0,FONT,3,"?",36,FONT,4,"filtrodesc",37
-	A,BEGIN,ST,"Anim1",0,0,"Testo contenuto nel campo descrizione","",0,0,1,0
+	A,BEGIN,ST,"Anim1",0,0,"Testo contenuto nel campo descrizione","","0", , 
 		PP,"filtrodesc%",1,0,1,0,0,1
 	A,END
 O,END
@@ -113,7 +828,7 @@ O,BEGIN,T,"Text9"
 	PP,1,400,857,0,0,FONT,5,"Description filter",38,FONT,4,"Livello Min",37
 O,END
 O,BEGIN,OCX,"ComboDom"
-	B,12,832,161,853,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,12,832,161,853,10,60,1,0,6400,0,1,1,1,0,1,0,3
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,T,"Text5"
@@ -122,22 +837,22 @@ O,BEGIN,T,"Text5"
 	PP,1,396,822,0,0,FONT,5,"Cell filter",38,FONT,4,"Dominio",37
 O,END
 O,BEGIN,T,"FiltroCell"
-	B,532,815,770,844,532,815,1,0,6400,0,1,1,0,0,1,0,-1
+	B,532,815,770,844,532,815,1,0,6400,0,1,1,1,0,1,0,4
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,4,0,COLOR,4,0,COLOR,1,0,COLOR,1
 	AST,5,1,COLOR,1,COLOR,4,0,COLOR,6,0,COLOR,6,0,COLOR,6,0,COLOR,6,0
 	PP,1,532,815,2,0,FONT,3,"?",36,FONT,4,"filtrodesc",37
-	A,BEGIN,ST,"Anim1",0,0,"Testo contenuto nel campo descrizione","",0,0,1,0
+	A,BEGIN,ST,"Anim1",0,0,"Testo contenuto nel campo descrizione","","0", , 
 		PP,"logfiltrocell%",1,0,1,0,0,1
 	A,END
 O,END
 O,BEGIN,T,"FiltraCella"
-	B,778,815,877,844,778,815,1,0,6400,0,1,1,0,0,1,0,-1
+	B,778,815,877,844,778,815,1,0,6400,0,1,1,1,0,1,0,5
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,9,0,COLOR,9,0,COLOR,1,0,COLOR,1
 	AST,4,2,COLOR,1,COLOR,9,0,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,1
 	PP,1,778,815,0,0,FONT,3,"Apply filter",37,FONT,4,"F",37
 O,END
 O,BEGIN,T,"ResetFiltroCella"
-	B,778,850,877,879,778,850,1,0,6400,0,1,1,0,0,1,0,-1
+	B,778,850,877,879,778,850,1,0,6400,0,1,1,1,0,1,0,6
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,9,0,COLOR,9,0,COLOR,1,0,COLOR,1
 	AST,4,2,COLOR,1,COLOR,9,0,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,1
 	PP,1,778,850,0,0,FONT,3,"Remove filter",37,FONT,4,"F",37
@@ -158,7 +873,7 @@ O,BEGIN,RR,"NAV_ALARM_BACKGROUND_PREMIUM_ANTHRACITE4"
 	PP,6,9
 O,END
 O,BEGIN,T,"cmdSalva"
-	B,1126,860,1225,881,1126,860,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1126,860,1225,881,1126,860,1,0,6400,0,1,1,1,0,1,0,7
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,9,0,COLOR,9,0,COLOR,1,0,COLOR,1
 	AST,4,2,COLOR,1,COLOR,2,0,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,1
 	PP,1,1126,860,0,0,FONT,3,"Save filter",37,FONT,4,"Salva",37
@@ -169,25 +884,25 @@ O,BEGIN,T,"Text21"
 	PP,1,1130,813,0,0,FONT,5,"Filters manager",36,FONT,4,"Salvataggio filtri",37
 O,END
 O,BEGIN,T,"cmdElimina"
-	B,1232,861,1331,882,1232,861,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1232,861,1331,882,1232,861,1,0,6400,0,1,1,1,0,1,0,8
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,9,0,COLOR,9,0,COLOR,1,0,COLOR,1
 	AST,4,2,COLOR,1,COLOR,2,0,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,1
 	PP,1,1232,861,0,0,FONT,3,"Delete filter",37,FONT,4,"Elimina",37
 O,END
 O,BEGIN,OCX,"CheckNoAckOn"
-	B,1357,832,1373,849,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1357,832,1373,849,10,60,1,0,6400,0,1,1,1,0,1,0,9
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,OCX,"CheckAckOn"
-	B,1357,848,1373,865,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1357,848,1373,865,10,60,1,0,6400,0,1,1,1,0,1,0,10
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,OCX,"CheckNoAckOff"
-	B,1357,864,1373,881,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1357,864,1373,881,10,60,1,0,6400,0,1,1,1,0,1,0,11
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,OCX,"ComboFilter"
-	B,1127,833,1332,856,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1127,833,1332,856,10,60,1,0,6400,0,1,1,1,0,1,0,12
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,T,"Text11"
@@ -221,11 +936,11 @@ O,BEGIN,T,"Text6"
 	PP,1,909,833,0,0,FONT,6,"Min. level",38,FONT,4,"Dominio",37
 O,END
 O,BEGIN,OCX,"ComboLivMin"
-	B,1001,833,1100,854,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1001,833,1100,854,10,60,1,0,6400,0,1,1,1,0,1,0,13
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,OCX,"ComboLivMax"
-	B,1001,856,1100,877,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1001,856,1100,877,10,60,1,0,6400,0,1,1,1,0,1,0,14
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,T,"Text10"
@@ -239,26 +954,26 @@ O,BEGIN,T,"Text16"
 	PP,1,913,814,0,0,FONT,5,"Levels filters",36,FONT,4,"Livello Min",37
 O,END
 O,BEGIN,RR,"NAV_ALARM_BACKGROUND_PREMIUM_ANTHRACITE8"
-	B,1592,888,1490,809,1592,888,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1592,888,1490,809,1592,888,1,0,6400,0,1,1,1,0,1,0,15
 	ST,0,1,COLOR,7,COLOR,7,0,0,COLOR,10,0,COLOR,10,0,COLOR,1,0,COLOR,1
 	PP,9,9
 O,END
 O,BEGIN,T,"cmdResetAllFilters"
-	B,1493,816,1589,882,1484,903,1,0,6400,0,1,1,0,0,1,0,-1
+	B,1493,816,1589,882,1484,903,1,0,6400,0,1,1,1,0,1,0,16
 	ST,0,1,COLOR,11,COLOR,11,0,0,COLOR,7,0,COLOR,7,0,COLOR,1,0,COLOR,1
 	PP,1,1493,816,12,0,FONT,7,"RESET\\nALL\\nFILTERS",85,FONT,8,"SCADA",38
 O,END
 O,BEGIN,OCX,"Combonat"
-	B,170,832,310,853,10,60,1,0,6400,0,1,1,0,0,1,0,-1
+	B,170,832,310,853,10,60,1,0,6400,0,1,1,1,0,1,0,17
 	ST,5,1,COLOR,1,COLOR,1,1,0,COLOR,2,0,COLOR,2,0,COLOR,1,0,COLOR,1
 O,END
 O,BEGIN,T,"txtCellDescFilter"
-	B,15,864,306,879,15,864,1,0,6400,0,1,1,0,0,1,0,-1
+	B,15,864,306,879,15,864,1,0,6400,0,1,1,1,0,1,0,18
 	ST,0,1,COLOR,2,COLOR,2,0,0,COLOR,7,0,COLOR,7,0,COLOR,1,0,COLOR,1
 	PP,1,15,864,0,0,FONT,9," ",36,FONT,4,"Dominio",37
-	A,BEGIN,VT,"Anim1",0,0,"","",0,0,0,0
+	A,BEGIN,VT,"Anim1",0,0,"","","0", , 
 		PP,4,"@System.LocalHost.Profile","",1,2,0,1,2,0,1,2,0
-		ADVANIMATION,"pAdmin","",1,0
+		ADVANIMATION,"p_Admin","",1,0
 	A,END
 O,END
 O,BEGIN,T,"Text1"
@@ -269,8 +984,8 @@ O,END
 O,BEGIN,E,"Shape23"
 	B,1705,866,1690,851,1705,866,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,5,1,COLOR,1,COLOR,1,0,0,COLOR,12,0,COLOR,12,0,COLOR,1,0,COLOR,1
-	A,BEGIN,CB,"Anim1",0,0,"","",0,0,0,0
-		PP,"@System.HDS.DB1.Paused"
+	A,BEGIN,CB,"Anim1",0,0,"","","0", , 
+		PP,"@System.HDS.NAS.Paused"
 		COL,1,COLOR,13,COLOR,13
 		COL,1,COLOR,14,COLOR,14
 		COL,1,COLOR,12,COLOR,12
@@ -292,7 +1007,7 @@ O,END
 O,BEGIN,E,"Shape5"
 	B,1705,847,1690,832,1705,847,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,5,1,COLOR,1,COLOR,1,0,0,COLOR,12,0,COLOR,12,0,COLOR,1,0,COLOR,1
-	A,BEGIN,CB,"Anim1",0,0,"","",0,0,1,0
+	A,BEGIN,CB,"Anim1",0,0,"","","0", , 
 		PP,"@System.HDS.Started"
 		COL,1,COLOR,14,COLOR,14
 		COL,1,COLOR,13,COLOR,13
@@ -310,8 +1025,8 @@ O,END
 O,BEGIN,E,"Shape7"
 	B,1705,885,1690,870,1705,885,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,5,1,COLOR,1,COLOR,1,0,0,COLOR,12,0,COLOR,12,0,COLOR,1,0,COLOR,1
-	A,BEGIN,CB,"Anim1",0,0,"","",0,0,0,0
-		PP,"@System.HDS.DB1.Disconn"
+	A,BEGIN,CB,"Anim1",0,0,"","","0", , 
+		PP,"@System.HDS.NAS.Disconn"
 		COL,1,COLOR,13,COLOR,13
 		COL,1,COLOR,14,COLOR,14
 		COL,1,COLOR,12,COLOR,12
@@ -328,8 +1043,8 @@ O,END
 O,BEGIN,E,"Shape21"
 	B,1793,886,1778,871,1793,886,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,5,1,COLOR,1,COLOR,1,0,0,COLOR,12,0,COLOR,12,0,COLOR,1,0,COLOR,1
-	A,BEGIN,CB,"Anim1",0,0,"","",0,0,0,0
-		PP,"@System.HDS.DB1.DiskFull"
+	A,BEGIN,CB,"Anim1",0,0,"","","0", , 
+		PP,"@System.HDS.NAS.DiskFull"
 		COL,1,COLOR,13,COLOR,13
 		COL,1,COLOR,14,COLOR,14
 		COL,1,COLOR,12,COLOR,12
@@ -346,7 +1061,7 @@ O,END
 O,BEGIN,E,"Shape22"
 	B,1900,962,1885,947,1900,962,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,5,1,COLOR,1,COLOR,1,0,0,COLOR,12,0,COLOR,12,0,COLOR,1,0,COLOR,1
-	A,BEGIN,CB,"Anim1",0,0,"","",0,0,1,0
+	A,BEGIN,CB,"Anim1",0,0,"","","0", , 
 		PP,"@System.HDS.NAS.Full"
 		COL,1,COLOR,13,COLOR,13
 		COL,1,COLOR,14,COLOR,14
@@ -365,8 +1080,8 @@ O,BEGIN,T,"Text13"
 	B,1814,850,1892,864,1814,850,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,7,0,COLOR,7,0,COLOR,1,0,COLOR,1
 	PP,1,1814,850,0,0,FONT,6,"XXX%",38,FONT,4,"Dominio",37
-	A,BEGIN,DR,"Anim1",0,0,"","",0,0,0,0
-		PP,"@System.HDS.DB1.SpaceUsed","",0
+	A,BEGIN,DR,"Anim1",0,0,"","","0", , 
+		PP,"@System.HDS.NAS.SpaceUsed","",0
 		ADVFORMAT2,2,"#0\'%\'"
 	A,END
 O,END
@@ -379,7 +1094,7 @@ O,BEGIN,T,"Text4"
 	B,1826,834,1892,848,1826,834,1,0,6400,0,1,0,0,0,1,0,-1
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,7,0,COLOR,7,0,COLOR,1,0,COLOR,1
 	PP,1,1826,834,0,0,FONT,6,"XXX",38,FONT,4,"Dominio",37
-	A,BEGIN,DR,"Anim1",0,0,"","",0,0,0,0
+	A,BEGIN,DR,"Anim1",0,0,"","","0", , 
 		PP,"@System.HDS.PendingRecords","",0
 		ADVFORMAT2,2,"#0"
 	A,END
@@ -394,7 +1109,7 @@ O,BEGIN,T,"Text23"
 	ST,0,1,COLOR,1,COLOR,1,0,0,COLOR,9,0,COLOR,9,0,COLOR,1,0,COLOR,1
 	AST,4,2,COLOR,1,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,0,COLOR,7,1
 	PP,1,1790,814,0,0,FONT,5,"More details...",37,FONT,4,"Livello Min",37
-	A,BEGIN,LO,"Anim2",0,0,"","",0,0,0,0
+	A,BEGIN,LO,"Anim2",0,0,"","","0", , 
 		PP,"L_DistArch/DIAGNOSTICS_HDS","",1,0,1,0,"","",1,0,,1,0,
 	A,END
 O,END

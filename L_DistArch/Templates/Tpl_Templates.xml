@@ -11,21 +11,52 @@
 <AutoNaming_Step>1</AutoNaming_Step>
 <Enable_Instance>true</Enable_Instance>
 <ParametersList>
+<ParameterInstance Name="L_DistArch/ArchBranch">
+<DescriptionLang1>ArchBranch</DescriptionLang1>
+<DescriptionLang2>ArchBranch</DescriptionLang2>
+<Value/>
+</ParameterInstance>
 <ParameterInstance Name="L_DistArch/VarClientList">
 <DescriptionLang1>VarClientList</DescriptionLang1>
 <DescriptionLang2>VarClientList</DescriptionLang2>
 <Value/>
-<Scope>1</Scope>
+<Scope>0</Scope>
 </ParameterInstance>
 <ParameterInstance Name="L_DistArch/VarServerList">
 <DescriptionLang1>VarServerList</DescriptionLang1>
 <DescriptionLang2>VarServerList</DescriptionLang2>
 <Value/>
-<Scope>1</Scope>
+<Scope>0</Scope>
 </ParameterInstance>
 </ParametersList>
 <TemplatesList/>
 <ObjectsList>
+<Object Name="ACTIVE">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">1 when local station is active in managing audit events</Property>
+<Property id="Eqt_Type" Reset="false" Substitute="false">B</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">L_DistArch/pAllServerList</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+<Object Name="Local">
+<DescriptionLang1>Desc Local</DescriptionLang1>
+<InternalType>4</InternalType>
+<SvType>5</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Localhost.sym</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
 <Object Name="Networking">
 <DescriptionLang1>Desc Networking</DescriptionLang1>
 <InternalType>3</InternalType>
@@ -38,6 +69,84 @@
 <Property id="Title1" Reset="false" Substitute="false">Vue Architecture Distribuée</Property>
 <Property id="Title2" Reset="false" Substitute="false">Distributed Architecture view</Property>
 <Property id="UseContextBranch" Reset="false" Substitute="false">0</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+<Object Name="RST_OVERRIDE">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1 enable global override to restart even if an user is logged on local station</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+<Object Name="Stations">
+<InternalType>2</InternalType>
+<SvType>64</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Extension" Reset="false" Substitute="false">txt</Property>
+<Property id="FileName" Reset="false" Substitute="false">DistArchStations</Property>
+<Property id="Format" Reset="false" Substitute="false">1</Property>
+<Property id="Tags" Reset="false" Substitute="false">station</Property>
+<Property id="Text_Encoding" Reset="false" Substitute="false">2</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+<Object Name="SYS_AUDIT">
+<InternalType>2</InternalType>
+<SvType>25</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ClientListName" Reset="false" Substitute="false">LCALL</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">L_DistArch/pHServerList</Property>
+<Property id="TemplateAlias" Reset="false" Substitute="false">2</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList>
+<Object Name="LoginLogout">
+<InternalType>5</InternalType>
+<SvType>68</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ArchiveAttribute2Record" Reset="false" Substitute="false">#@A1,#@A2,#@A3,#@A4,#@A5</Property>
+<Property id="AttributesFilter" Reset="false" Substitute="false">=(#A1 == AUDIT)</Property>
+<Property id="FilterEventMask_Acknowledge" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_AlarmOffAck" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_AlarmOffNotAck" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_AlarmOnAck" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_AlarmOnNotAck" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_ChangeTo0" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_Command" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_LogonLogoff" Reset="false" Substitute="false">0</Property>
+<Property id="FilterEventMask_MaskAlarm" Reset="false" Substitute="false">0</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+</ObjectsList>
+</Object>
+<Object Name="USERCONF_LOCKED">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1 User Configuration is locked by a station, on attr 3 username, on 4 station</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="UseExtendedAttributes" Reset="false" Substitute="false">-1</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
@@ -120,7 +229,7 @@
 <SvType>4</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="MimicTemplate_Name" Reset="false" Substitute="false">TEMPLATE_DASHBOARD_DARK</Property>
+<Property id="MimicTemplate_Name" Reset="false" Substitute="true"></Property>
 <Property id="Title1" Reset="false" Substitute="false">Client-Server</Property>
 <Property id="Title2" Reset="false" Substitute="false">Client-Server</Property>
 <Property id="UseContextBranch" Reset="false" Substitute="false">0</Property>
@@ -134,7 +243,7 @@
 <SvType>5</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Localhost</Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Localhost.sym</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
@@ -347,7 +456,7 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="Description" Reset="false" Substitute="false"></Property>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Station</Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Station.sym</Property>
 <Property id="Visibility" Reset="true" Substitute="false">0;6400</Property>
 </Properties>
 </ObjectItem>
@@ -538,6 +647,24 @@
 </ObjectItem>
 <ObjectsList/>
 </Object>
+<Object Name="EN_BUZZER">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, enable sound on alarm presence</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, abilita il cicalina se presente un allarme</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">1</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="Saved" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
 <Object Name="FreeVirtualMemory">
 <InternalType>2</InternalType>
 <SvType>2</SvType>
@@ -678,6 +805,54 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+<Object Name="RESET">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, triggers SCADA restart.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, richiede il riavvio dello SCADA.</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="Saved" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList>
+<Object Name="Restart">
+<InternalType>5</InternalType>
+<SvType>10</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ProgramArg" Reset="false" Substitute="true">L_DistArch/ArchBranch</Property>
+<Property id="ProgramFunction" Reset="false" Substitute="false">Restart_PcVue</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
+<Property id="TriggeringCondition" Reset="false" Substitute="false">1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+</ObjectsList>
+</Object>
+<Object Name="RUNNINGMODE">
+<InternalType>2</InternalType>
+<SvType>2</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">Execution mode: 1=Console, 2=Service, 3=RDS.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Modalità di esecuzione: 1=Console, 2=Service, 3=RDS.</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Type" Reset="false" Substitute="false">2</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
 </Properties>
 </ObjectItem>
 <ObjectsList/>
@@ -868,6 +1043,19 @@
 </Object>
 </ObjectsList>
 </Object>
+<Object Name="StationName">
+<InternalType>2</InternalType>
+<SvType>65</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Format" Reset="false" Substitute="false">1</Property>
+<Property id="Tags" Reset="false" Substitute="false">station</Property>
+<Property id="Text_LinePosition" Reset="false" Substitute="false">2</Property>
+<Property id="Text_Value" Reset="false" Substitute="true">=Inst.FullBranch</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
 <Object Name="StationSymb">
 <DescriptionLang1>Desc StationSymb</DescriptionLang1>
 <InternalType>4</InternalType>
@@ -875,7 +1063,7 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="Description" Reset="false" Substitute="false"></Property>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Station</Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Station.sym</Property>
 <Property id="Visibility" Reset="true" Substitute="false">0;6400</Property>
 </Properties>
 </ObjectItem>
@@ -901,6 +1089,66 @@
 </ObjectItem>
 <ObjectsList/>
 </Object>
+<Object Name="USER_DISC">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, force user logoff.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, forza la disconnessione</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList>
+<Object Name="Disconnection">
+<InternalType>5</InternalType>
+<SvType>10</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ProgramFunction" Reset="false" Substitute="false">UserDisconnection</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
+<Property id="TriggeringCondition" Reset="false" Substitute="false">1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+</ObjectsList>
+</Object>
+<Object Name="USER_RELOAD">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, reloads USER.DAT configuration file.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, ricarica il file di configurazione USER.DAT.</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList>
+<Object Name="UserReload">
+<InternalType>5</InternalType>
+<SvType>10</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ProgramFunction" Reset="false" Substitute="false">UserReload</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
+<Property id="TriggeringCondition" Reset="false" Substitute="false">1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+</ObjectsList>
+</Object>
 <Object Name="UserConnected">
 <InternalType>2</InternalType>
 <SvType>3</SvType>
@@ -920,16 +1168,40 @@
 <AutoNaming_FixedDigits>1</AutoNaming_FixedDigits>
 <AutoNaming_Step>1</AutoNaming_Step>
 <Enable_Instance>true</Enable_Instance>
-<ParametersList/>
+<ParametersList>
+<ParameterInstance Name="L_DistArch/VarServerLocalList">
+<DescriptionLang1>VarServerLocalList</DescriptionLang1>
+<DescriptionLang2>VarServerLocalList</DescriptionLang2>
+<Value/>
+<Scope>1</Scope>
+</ParameterInstance>
+</ParametersList>
 <TemplatesList/>
 <ObjectsList>
+<Object Name="EN_BUZZER">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, enable sound on alarm presence</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, abilita il cicalina se presente un allarme</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">1</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="Saved" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
 <Object Name="FreeVirtualMemory">
 <InternalType>2</InternalType>
 <SvType>2</SvType>
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">4194304</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -952,7 +1224,6 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">100000</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -975,7 +1246,6 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">1000000</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -996,9 +1266,7 @@
 <InternalType>2</InternalType>
 <SvType>1</SvType>
 <ObjectItem SubType="">
-<Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
-</Properties>
+<Properties/>
 </ObjectItem>
 <ObjectsList>
 <Object Name="Expression01">
@@ -1017,9 +1285,7 @@
 <InternalType>2</InternalType>
 <SvType>1</SvType>
 <ObjectItem SubType="">
-<Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
-</Properties>
+<Properties/>
 </ObjectItem>
 <ObjectsList>
 <Object Name="Expression01">
@@ -1039,7 +1305,6 @@
 <SvType>3</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">3</Property>
 </Properties>
 </ObjectItem>
@@ -1061,7 +1326,6 @@
 <SvType>3</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">3</Property>
 </Properties>
 </ObjectItem>
@@ -1105,7 +1369,6 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">10000</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -1127,7 +1390,6 @@
 <SvType>3</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">3</Property>
 </Properties>
 </ObjectItem>
@@ -1148,9 +1410,7 @@
 <InternalType>2</InternalType>
 <SvType>1</SvType>
 <ObjectItem SubType="">
-<Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
-</Properties>
+<Properties/>
 </ObjectItem>
 <ObjectsList>
 <Object Name="Expression01">
@@ -1169,9 +1429,7 @@
 <InternalType>2</InternalType>
 <SvType>1</SvType>
 <ObjectItem SubType="">
-<Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
-</Properties>
+<Properties/>
 </ObjectItem>
 <ObjectsList>
 <Object Name="Expression01">
@@ -1191,7 +1449,6 @@
 <SvType>3</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">3</Property>
 </Properties>
 </ObjectItem>
@@ -1214,7 +1471,6 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">100</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -1230,6 +1486,54 @@
 <ObjectsList/>
 </Object>
 </ObjectsList>
+</Object>
+<Object Name="RESET">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, triggers SCADA restart.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, richiede il riavvio dello SCADA.</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="Saved" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList>
+<Object Name="Restart">
+<InternalType>5</InternalType>
+<SvType>10</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ProgramArg" Reset="false" Substitute="true">L_DistArch/ArchBranch</Property>
+<Property id="ProgramFunction" Reset="false" Substitute="false">Restart_PcVue</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
+<Property id="TriggeringCondition" Reset="false" Substitute="false">1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+</ObjectsList>
+</Object>
+<Object Name="RUNNINGMODE">
+<InternalType>2</InternalType>
+<SvType>2</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">Execution mode: 1=Console, 2=Service, 3=RDS.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Modalità di esecuzione: 1=Console, 2=Service, 3=RDS.</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Type" Reset="false" Substitute="false">2</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
 </Object>
 <Object Name="STATION">
 <InternalType>2</InternalType>
@@ -1417,14 +1721,27 @@
 </Object>
 </ObjectsList>
 </Object>
+<Object Name="StationName">
+<InternalType>2</InternalType>
+<SvType>65</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Format" Reset="false" Substitute="false">1</Property>
+<Property id="Tags" Reset="false" Substitute="false">station</Property>
+<Property id="Text_LinePosition" Reset="false" Substitute="false">2</Property>
+<Property id="Text_Value" Reset="false" Substitute="true">=Inst.FullBranch</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
 <Object Name="StationSymb">
 <DescriptionLang1>Desc StationSymb</DescriptionLang1>
 <InternalType>4</InternalType>
 <SvType>5</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="Description" Reset="false" Substitute="false"></Property>
-<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Station</Property>
+<Property id="Description" Reset="true" Substitute="false"></Property>
+<Property id="SymbolTemplate_Name" Reset="false" Substitute="false">L_DistArch/Station.sym</Property>
 <Property id="Visibility" Reset="true" Substitute="false">0;6400</Property>
 </Properties>
 </ObjectItem>
@@ -1436,7 +1753,6 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">10000</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -1459,7 +1775,6 @@
 <ObjectItem SubType="">
 <Properties>
 <Property id="MaximumValue" Reset="false" Substitute="false">100000</Property>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">2</Property>
 </Properties>
 </ObjectItem>
@@ -1476,12 +1791,59 @@
 </Object>
 </ObjectsList>
 </Object>
+<Object Name="USER_DISC">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, force user logoff.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, forza la disconnessione</Property>
+<Property id="InitialValue" Reset="false" Substitute="false">0</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+<Object Name="USER_RELOAD">
+<InternalType>2</InternalType>
+<SvType>1</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="Command" Reset="false" Substitute="false">-1</Property>
+<Property id="Description" Reset="false" Substitute="false">When 1, reloads USER.DAT configuration file.</Property>
+<Property id="DescriptionAlt" Reset="false" Substitute="false">Quando vale 1, ricarica il file di configurazione USER.DAT.</Property>
+<Property id="Log" Reset="false" Substitute="false">-1</Property>
+<Property id="Log0_1" Reset="false" Substitute="false">-1</Property>
+<Property id="Log1_0" Reset="false" Substitute="false">-1</Property>
+<Property id="WithInitialValue" Reset="false" Substitute="false">-1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList>
+<Object Name="UserReload">
+<InternalType>5</InternalType>
+<SvType>10</SvType>
+<ObjectItem SubType="">
+<Properties>
+<Property id="ProgramArg" Reset="false" Substitute="true">L_DistArch/ArchBranch</Property>
+<Property id="ProgramFunction" Reset="false" Substitute="false">UserReload</Property>
+<Property id="ProgramName" Reset="false" Substitute="false">L_DistArch/GENERAL.SCB</Property>
+<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
+<Property id="TriggeringCondition" Reset="false" Substitute="false">1</Property>
+</Properties>
+</ObjectItem>
+<ObjectsList/>
+</Object>
+</ObjectsList>
+</Object>
 <Object Name="UserConnected">
 <InternalType>2</InternalType>
 <SvType>3</SvType>
 <ObjectItem SubType="">
 <Properties>
-<Property id="ServerListName" Reset="false" Substitute="true">=Inst.Name</Property>
 <Property id="Type" Reset="false" Substitute="false">3</Property>
 </Properties>
 </ObjectItem>

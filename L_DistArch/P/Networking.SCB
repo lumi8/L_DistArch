@@ -36,3 +36,48 @@ DIM Var as str;
 
 
 End Sub
+
+'---------------------------------------
+' RT_Switch
+'---------------------------------------
+' Purpose:
+'   Switch active/passive servers for real-time data redundancy.
+'   - Explicitly sets the role of the target station:
+'     "SET_SERVER_ACTIF" or "SET_SERVER_PASSIF".
+'
+' Arguments:
+'   ARG1 = Association name (real-time redundancy)
+'   ARG2 = Station name to switch
+'   ARG3 = Mode ("ACTIVE" or "PASSIVE")
+'
+' Notes:
+'   - LAN("SET_SERVER_MODE", ...) is used for real-time associations.
+'   - Only one server can be ACTIVE at a time.
+'---------------------------------------
+
+Sub RT_Switch()
+
+    Dim cAssociation As Str;
+    Dim cStationName As Str;
+    Dim cMode        As Str;
+    Dim iReturn      As Integer;
+
+    ' Retrieve arguments
+    cAssociation = Ucase(GetArg("ARG1"));
+    cStationName = Ucase(GetArg("ARG2"));
+    cMode        = Ucase(GetArg("ARG3"));
+    
+    ' Switch based on requested mode
+	IF (CmpString (cMode, "ACTIVE") == 0) Then
+  
+    	iReturn = LAN ("SET_SERVER_MODE", cAssociation, cStationName, "SET_SERVER_ACTIF");
+    
+  	ELSE
+  
+    	iReturn = LAN ("SET_SERVER_MODE", cAssociation, cStationName, "SET_SERVER_PASSIF");
+    
+  	END IF
+
+  	TRACE("LOG", ADDSTRING("RT_Switch: ", cAssociation, " station=", cStationName));
+
+End Sub
