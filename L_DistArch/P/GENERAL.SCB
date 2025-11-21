@@ -232,8 +232,6 @@ Sub Restart_PcVue()
     Dim SvRestartPath   As Str;    ' Path of svrestart.exe
     Dim CommandLine     As Str;    ' Final command to execute
     Dim Args            As Str;    ' Arguments for svrestart.exe
-    Dim MyId            As Long;   ' Current PcVue process ID
-    Dim i               As Integer;
     Dim VarReset        As Str;
     Dim LenStName       As Integer;
     Dim LenPrjName      As Integer;
@@ -266,7 +264,6 @@ Sub Restart_PcVue()
 
         ' Get process ID and paths
         MyId = GetCurrentProcessId();
-        SvPath = GetSvPath(MyId);
 
         SvProjectsPath = Left ( SvProjectPath , LEN (SvProjectPath ) - LEN (ADDSTRING ("USR\\" , SvProjectName)));
         
