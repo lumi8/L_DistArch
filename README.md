@@ -1,4 +1,4 @@
-# L_DistArch – Client-Server Library for PcVue 16
+# L_DistArch – Client-Server Library for PcVue 16.2.5
 
 **L_DistArch** is a library designed to extend **PcVue 16** functionality in **redundant Client-Server architectures**.  
 It provides a complete set of tools for **centralized management of multiple stations**, **automatic synchronization** of users and configurations, and **real-time monitoring** of the SCADA network status.
