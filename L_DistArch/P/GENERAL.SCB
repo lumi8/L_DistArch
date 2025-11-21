@@ -114,12 +114,12 @@ Sub Main()
 	
 	
     ' Schedule cyclic buzzer management
-    'CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL.SCB", "", "Buzzer");
+    CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL.SCB", "", "Buzzer");
 
     ' Delay loading of Main2() to allow system initialization
-    'CYCLIC("ADDPROG", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
+    CYCLIC("ADDPROG", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
     
-    'Program("PRELOAD", "L_DistArch/Networking.SCB", "");
+    Program("PRELOAD", "L_DistArch/Networking.SCB", "");
 
 End Sub
 
