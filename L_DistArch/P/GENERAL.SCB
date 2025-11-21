@@ -11,6 +11,11 @@
 ' These functions are used by Restart_PcVue() and GetSvPath()
 ' to retrieve the current process ID and executable path.
 '---------------------------------------
+Dim SvPath          As Str;    ' Path of sv32.exe
+Dim MyId            As Long;   ' Current PcVue process ID
+Dim SvProjectPath   As Str;
+Dim SvProjectName   As Str;
+Dim strCentralPath 	As Str;
 
 
 Declare Function GetCurrentProcessId Lib "kernel32" Alias "GetCurrentProcessId" () As Long;
@@ -18,6 +23,80 @@ Declare Function GetModuleFileNameEx Lib "psapi.dll" Alias "GetModuleFileNameExA
 Declare Function OpenProcess Lib "kernel32" (dwDesiredAccess As Long, bInheritHandle As Long, dwProcessId As Long) As Long;
 Declare Function CloseHandle Lib "kernel32" (hObject As Long) As Long;
 
+'---------------------------------------
+' GetElement
+'---------------------------------------
+' Purpose:
+'   Return an element in a string (first, last or other element)
+'
+' Arguments:
+'   strExpression is a string, ie: a variable name
+'   delimiter is a string, ie: "." or ","...
+'   position is a number, ie: -1, 1, ..., 12... (first is 1, last is -1)
+'
+'---------------------------------------
+
+Sub GetElement(strExpression, delimiter, position)
+Dim lngBuffer1 as Long;
+Dim strResult as Str;
+
+	lngBuffer1 = Alloc_Buffer(Len(strExpression));
+	Put_Buffer(lngBuffer1, 0, strExpression);
+	If (position == -1) Then
+		strResult = Asciifield("STR", lngBuffer1, Asciifield("COUNT", lngBuffer1, delimiter) , delimiter);
+	Else
+		strResult = Asciifield("STR", lngBuffer1, position , delimiter);		
+	End If
+
+	Free_Buffer(lngBuffer1);
+	Return(strResult);
+	
+End Sub
+
+'---------------------------------------
+' GetCentralPath
+'---------------------------------------
+' Purpose:
+'   Return central project management folder
+'---------------------------------------
+
+Sub GetCentralPath()
+Dim FileName as Str;
+Dim strLine as str;
+Dim strResult as Str;
+Dim strElement as Str;
+Dim lngBufFile as Long;
+Dim lngBuffer2 as Long;
+Dim i as Integer;
+
+	FileName = Left(GetApplicationDir(), Len(GetApplicationDir())-3) ;
+	FileName = AddString(FileName, "ETC\\ini.dat");
+
+	lngBufFile = FileToBuf(FileName);
+	i = Seq_Buffer("BEGIN", lngBufFile);
+	
+	While (i != 0)
+		'Read lines
+		strLine = Seq_Buffer("NEXTFIELD", lngBufFile, "\n", "STR");
+		strElement = GetElement(strLine, ",", 1);
+		
+		If (CmpString(strElement, "CENTRAL")==0) Then
+			strResult = GetElement(strLine, ",", 2);
+			Break;
+		End If
+		
+		lngbuffer2 = ALLOC_BUFFER(110);
+		'test if next field exist
+		i = Seq_Buffer("SEEKFIELD", 1, lngBufFile, "\n");
+		'move cursor back to previous position
+		Seq_Buffer("SEEKFIELD", -1, lngBufFile, "\n");		
+		Free_Buffer(lngBuffer2);
+	Wend
+	Free_Buffer(lngBufFile);
+	
+	Return(strResult);
+	
+End Sub
 
 '---------------------------------------
 ' Entry point
@@ -27,16 +106,20 @@ Declare Function CloseHandle Lib "kernel32" (hObject As Long) As Long;
 '---------------------------------------
 
 Sub Main()
+    MyId = GetCurrentProcessId();
+    SvProjectPath = GetProjectDir();
+    SvPath = AddString(GetApplicationDir(), "\\sv32.exe");
+	StrCentralPath = GetCentralPath();
+	SvProjectName = GetElement(GetProjectDir(),"\\",-1);
 	
-
+	
     ' Schedule cyclic buzzer management
-    CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL.SCB", "", "Buzzer");
+    'CYCLIC("ADDPROG", 15, "L_DistArch/GENERAL.SCB", "", "Buzzer");
 
     ' Delay loading of Main2() to allow system initialization
-    CYCLIC("ADDPROG", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
+    'CYCLIC("ADDPROG", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
     
-    Program("PRELOAD", "L_DistArch/Networking.SCB", "");
-    
+    'Program("PRELOAD", "L_DistArch/Networking.SCB", "");
 
 End Sub
 
@@ -46,21 +129,14 @@ End Sub
 '---------------------------------------
 ' Purpose:
 '   Secondary initialization routine executed after delay.
-'   - Updates version, user, and active flag
-'   - Registers event triggers for user and version changes
+'   - Manage Dual display
 '   - Cleans up cyclic delay started in Main()
 '---------------------------------------
 
 Sub Main2()
-
-    Dim VersionID  As Str;
-    Dim DisconnID  As Str;
-    Dim UserID     As Str;
-
     
     ' Optional dual monitor activation (currently disabled)
     ' DualDisplay()
-    
     
     ' Remove delayed cyclic created in Main()
     CYCLIC("DEL_EX", 10, "L_DistArch/GENERAL.SCB", "", "Main2");
@@ -69,7 +145,6 @@ Sub Main2()
     TRACE("LOG", "***** L_ArchDist : Client-Server Management module loaded ****");
 
 End Sub
-
 
 
 '---------------------------------------
@@ -82,43 +157,40 @@ End Sub
 ' Variables:
 '   <Architecture>.<Station>.USER_RELOAD  - Reload trigger for user.dat
 '
-' Notes: (Todo: find a way to replace this 15s cyclic by events)
+' Notes: 
 '   - Variables are defined in Application Architect.
 '   - Batch "user_load.bat" must exist in library folder \TP\
 '     This copies the updated user.dat from the central folder to the
-'     local station's project directory, only if newer.
+'     local station's project directory.
 '---------------------------------------
 
 Sub UserReload()
 
-    Dim VarReset        As Str;
-    Dim VarUser         As Str;
     Dim LoadCmd         As Str;
     Dim VarRunningMode  As Str;
     Dim RunningMode     As Single;
     Dim RunService      As Single;
     Dim RunRDS          As Single;
-
+    Dim strConcatArg 	As Str;
 
     '-----------------------------------
     ' User reload management
     '-----------------------------------
 
-   	TRACE("LOG", ADDSTRING("UserReload: reload requested by station ", @SYSTEM.STATION_NAME));
+	'Configuring parameters to attach to .bat file
+	strConcatArg = ADDSTRING("\"", strCentralPath, "\"", " ", "\"", SvProjectPath, "\"");
 
     ' Build batch path -> <ProjectDir><LibraryDir>\TP\user_load.bat
     LoadCmd = ADDSTRING(GETPROJECTDIR(), "\\LIB\\L_DistArch\\TP\\user_load.bat");
 
-    TRACE("LOG", ADDSTRING("UserReload: executing reload with command ", LoadCmd));
+    TRACE("LOG", ADDSTRING("UserReload: reload user.dat --> ", LoadCmd," --> ",strConcatArg));
         
-    ' Launch system command (not available on WebVue)
-    SYSTEM("SYSTEM", ADDSTRING("\"", LoadCmd, "\""));
+	' Execute batch to reload user.dat from central folder to local station
+	APPLICATION("LOAD", LoadCmd, strConcatArg);
 
-    ' Reset flag
+    ' Reset USER_RELOAD variable to 0
     Set(GetArg("VARNAME"), 0);
     Sendlist("BLOC");
-
-    TRACE("LOG", ADDSTRING("UserReload: user reload completed on ", @System.Station_Name));
 
     '-----------------------------------
     ' Running mode update
@@ -157,9 +229,6 @@ End Sub
 Sub Restart_PcVue()
 
     Dim SvProjectsPath  As Str;
-    Dim SvProjectPath   As Str;
-    Dim SvProjectName   As Str;
-    Dim SvPath          As Str;    ' Path of sv32.exe
     Dim SvRestartPath   As Str;    ' Path of svrestart.exe
     Dim CommandLine     As Str;    ' Final command to execute
     Dim Args            As Str;    ' Arguments for svrestart.exe
@@ -197,19 +266,16 @@ Sub Restart_PcVue()
 
         ' Get process ID and paths
         MyId = GetCurrentProcessId();
-        SvProjectPath = GETPROJECTDIR();
         SvPath = GetSvPath(MyId);
 
-        ' Extract project name from full project path
-        While (ASC(Right(SvProjectPath , i++) ) != ASC("\\") ) 
-        Wend 
-        SvProjectName = Right( SvProjectPath , i - 2); SvProjectsPath = Left ( SvProjectPath , LEN (SvProjectPath ) - LEN (ADDSTRING ("USR\\" , SvProjectName)));
+        SvProjectsPath = Left ( SvProjectPath , LEN (SvProjectPath ) - LEN (ADDSTRING ("USR\\" , SvProjectName)));
         
         '---------------------------------------
         ' Remote Desktop Session handling
         ' Adjust project name by removing station suffix (_<Station>)
         '---------------------------------------
         IF (@System.LocalHost.Environment.RunningInRemoteDesktopSession == 1) THEN
+        	SvProjectName = GetElement(GetProjectDir(),"\\",-1);
             LenStName = LEN(@SYSTEM.STATION_NAME); 
             LenStName=(LenStName + 1);	' Remove station name + underscore
             LenPrjName = LEN(SvProjectName);
@@ -274,47 +340,6 @@ Sub Restart_PcVue()
         '---------------------------------------
         TRACE("LOG", "***** L_ArchDist : User online, reload postponed... ****");
     END IF
-
-End Sub
-
-
-'---------------------------------------
-' GetSvPath
-'---------------------------------------
-' Purpose:
-'   Retrieve the full executable path of the current PcVue process.
-
-' Notes:
-'   - Uses Windows API functions declared globally:
-'       OpenProcess(), GetModuleFileNameEx(), CloseHandle()
-'   - Allocates and frees a temporary buffer to store the path
-'---------------------------------------
-
-Sub GetSvPath(ProcessID)
-
-      Dim lBufProc as Long;
-      Dim lBufName as Long;
-      Dim lMaxSize as Long;
-      Dim sRet as Str;
-
-      ' Allocate a buffer for the executable path
-      lMaxSize = 255;
-      lBufName  = ALLOC_BUFFER( lMaxSize );
-      
-      ' Open process handle
-      lBufProc  = OpenProcess(  1040 , 0  , ProcessID );
-      
-      ' Query full module file name (path to sv32.exe)
-      GetModuleFileNameEx(   lBufProc , 0, lBufName  , lMaxSize );
-      
-      ' Close handle
-      CloseHandle( lBufProc  );
-      
-      ' Copy buffer content into string and trim spaces
-      sRet = CGET_BUFFER( lBufName  , 0, lMaxSize );
-      FREE_BUFFER (lBufName);
-      
-      Return ( LTRIM (sRet) );
 
 End Sub
 
@@ -441,14 +466,14 @@ End Sub
 '   Distribute user database updates (user.dat) to all stations.
 '   - Runs user_copy.bat on the local station to copy user.dat 
 '     into the central shared folder.
-'   - Sets LAN.<Station>.USER_RELOAD = 1 on all other stations,
+'   - Sets <Architecture>.<Station>.USER_RELOAD = 1 on all other stations,
 '     triggering their reload procedure.
 '
 ' Variables:
-'   LAN.<Station>.USER_RELOAD - Reload trigger for user database
+'   <Architecture>.<Station>.USER_RELOAD - Reload trigger for user database
 '
 ' Notes:
-'   - Station list is defined in Stations[] global array.
+'   - Station list is defined in DistArchStations.txt in TP folder.
 '   - Batch file "user_copy.bat" must be present in library folder \TP\
 '   - The batch uses robocopy to copy the latest user.dat to the central folder.
 '   - Each client/server then reloads the updated file when USER_RELOAD = 1.
@@ -461,31 +486,35 @@ Sub BroadcastUserMgt()
     Dim i as Integer;
     Dim CopyCommand as Str;
     Dim FileName as Str;
-    Dim lngBuffer1 as Long;
     Dim Line as str;
+    Dim strConcatArg as Str;
 
-	' Execute batch to copy user.dat from local station to central folder
+
+	'Configuring parameters to attach to .bat file
+	strConcatArg = ADDSTRING("\"", SvProjectPath, "\"", " ", "\"", strCentralPath, "\"");
+
 	CopyCommand = ADDSTRING(GETPROJECTDIR(),"\\LIB\\L_DistArch\\TP\\user_copy.bat");
-	SYSTEM("SYSTEM", ADDSTRING("\"", CopyCommand, "\""));
-	TRACE("LOG", ADDSTRING("BroadcastUserMgt: distributed user.dat from ", @SYSTEM.STATION_NAME));
+
+	TRACE("LOG",ADDSTRING("BroadcastUserMgt: copy user.dat --> ",CopyCommand," --> ",strConcatArg));
 	
-	' Notify other stations to reload user.dat
+	' Execute batch to copy user.dat from local station to central folder
+	APPLICATION("LOAD", CopyCommand, strConcatArg);
+	
+	' Notify other stations to reload user.dat after few seconds
+    DELAY(2);
 	FileName = ADDSTRING(GETPROJECTDIR(),"\\TP\\DistArchStations.txt");
 
 	Fopen(FileName, "r");
 	
 	While (Feof(FileName)==0)
 		VarName = Fgets(FileName, 255);
-		lngBuffer1 = Alloc_Buffer(255);
-		Put_Buffer(lngBuffer1, 0, VarName);
-		StationName = Asciifield("STR", lngBuffer1, Asciifield("COUNT", lngBuffer1, ".") , ".");
+		StationName = GetElement(VarName, ".", -1);
 		print(StationName);
 		
 		If ((CmpString(StationName, @System.Station_name)!=0) && (CmpString(StationName, "")!=0)) Then
 			VarName = AddString(VarName, ".USER_RELOAD");
 			?Varname = 1;		
 		End If
-		Free_Buffer(lngBuffer1);		
 	Wend
 	Fclose(FileName);
 	
